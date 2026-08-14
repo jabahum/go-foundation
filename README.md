@@ -1,0 +1,237 @@
+# gRPC Clean Architecture Starter
+
+A production-oriented Go starter using gRPC, Protocol Buffers, Clean Architecture, PostgreSQL, local RBAC, local JWT authentication, optional OIDC/Keycloak authentication, Prometheus, OpenTelemetry, Jaeger, Docker Compose, migrations, pagination, health checks, graceful shutdown, structured logging, and tests.
+
+## Architecture
+
+```text
+Client
+  -> gRPC / Protobuf
+  -> request ID
+  -> authentication (local JWT or optional OIDC)
+  -> local RBAC permission lookup
+  -> metrics / logging / recovery
+  -> transport handler
+  -> application use case
+  -> domain
+  -> repository port
+  -> PostgreSQL
+```
+
+Authorization is always local. Enabling Keycloak/OIDC only changes how identity is established; roles and permissions remain in the starter database.
+
+## Requirements
+
+- Go 1.23+
+- Docker + Docker Compose
+- OpenSSL
+- Optional local tooling: Buf, grpcurl, golang-migrate
+
+Install developer tools:
+
+```bash
+make tools
+```
+
+## Quick start
+
+The Compose configuration contains development credentials only. Change them before using this outside local development.
+
+```bash
+make docker-up
+make logs
+```
+
+Services:
+
+- gRPC: `localhost:50051`
+- application metrics: `localhost:9090/metrics`
+- Prometheus: `localhost:9091`
+- Jaeger: `localhost:16686`
+- Grafana: `localhost:3000` (`admin` / `admin`)
+- PostgreSQL: `localhost:5432`
+
+The development bootstrap administrator is:
+
+```text
+admin@example.com
+ChangeMe123!
+```
+
+## Login
+
+```bash
+grpcurl -plaintext \
+  -d '{"email":"admin@example.com","password":"ChangeMe123!"}' \
+  localhost:50051 \
+  auth.v1.AuthService/Login
+```
+
+Copy the returned token:
+
+```bash
+export ACCESS_TOKEN='...'
+```
+
+Inspect the current identity and effective RBAC:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  localhost:50051 \
+  auth.v1.AuthService/Me
+```
+
+## Create a user
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -d '{"name":"Jeremy","email":"jeremy@example.com","password":"StrongPass123!"}' \
+  localhost:50051 \
+  user.v1.UserService/CreateUser
+```
+
+## List users with pagination
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -d '{"pageSize":20,"search":"jeremy"}' \
+  localhost:50051 \
+  user.v1.UserService/ListUsers
+```
+
+Pass the returned `nextPageToken` into the next request.
+
+## Manage RBAC
+
+List roles:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  localhost:50051 \
+  rbac.v1.RBACService/ListRoles
+```
+
+List permissions:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  localhost:50051 \
+  rbac.v1.RBACService/ListPermissions
+```
+
+Assign a role using IDs returned from the APIs:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -d '{"userId":"USER_UUID","roleId":"ROLE_UUID"}' \
+  localhost:50051 \
+  rbac.v1.RBACService/AssignRole
+```
+
+The gRPC authorization policy checks permissions, never hard-coded role names.
+
+## Default permissions
+
+- `users:read`
+- `users:create`
+- `users:update`
+- `users:disable`
+- `users:delete`
+- `roles:read`
+- `roles:manage`
+- `roles:assign`
+
+Default roles are `super_admin`, `user_admin`, and `viewer`.
+
+## Optional OIDC / Keycloak
+
+Local authentication is enabled by default. To additionally accept OIDC access tokens:
+
+```dotenv
+OIDC_ENABLED=true
+OIDC_ISSUER_URL=https://auth.example.org/realms/example
+OIDC_CLIENT_ID=grpc-api
+```
+
+External identities must be linked to a local user so local RBAC remains authoritative. The relevant fields are `users.auth_provider='oidc'` and `users.external_subject=<OIDC sub>`.
+
+Example linking an existing user:
+
+```sql
+UPDATE users
+SET auth_provider = 'oidc',
+    external_subject = 'OIDC-SUBJECT-HERE',
+    password_hash = NULL
+WHERE email = 'person@example.com';
+```
+
+If you want both local and external login for the same human, model identities in a separate `user_identities` table instead of replacing these fields; that is intentionally left as the first extension point for applications that need account linking.
+
+## Protobuf
+
+```bash
+make proto
+```
+
+Contracts are versioned under:
+
+```text
+api/proto/auth/v1
+api/proto/user/v1
+api/proto/rbac/v1
+```
+
+Generated Go code goes under `gen/proto` and is ignored by Git.
+
+## Database migrations
+
+```bash
+make migrate-up
+make migrate-down
+make migrate-create name=add_something
+```
+
+## Testing
+
+```bash
+make test
+```
+
+Unit tests use the in-memory repository where appropriate. PostgreSQL integration tests can be added under `tests/integration` without changing application code.
+
+## Health and operations
+
+Check standard gRPC health:
+
+```bash
+grpcurl -plaintext localhost:50051 grpc.health.v1.Health/Check
+```
+
+HTTP liveness for the operations listener:
+
+```bash
+curl http://localhost:9090/livez
+```
+
+The server marks gRPC health `NOT_SERVING` before graceful shutdown.
+
+## Security notes
+
+- Passwords use Argon2id.
+- Local JWTs use RS256.
+- Development RSA keys are generated by `make keys` and are not committed.
+- Never commit production private keys.
+- Tokens do not contain RBAC permissions; effective permissions are read from the database so revocation takes effect immediately.
+- Do not log access tokens, passwords, authorization headers, or private keys.
+- The bootstrap admin environment variables are for initialization and local development; use secret management in production.
+
+## Suggested production extensions
+
+This starter intentionally gives you the core service platform. Depending on the application, typical next extensions are refresh-token/session rotation, a separate `user_identities` table for multi-provider account linking, Redis permission caching with invalidation, rate limiting, database integration tests via Testcontainers, TLS/mTLS, and generated API documentation.
+# go-foundation
