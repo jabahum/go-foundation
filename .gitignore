@@ -1,0 +1,6 @@
+.env
+bin/
+gen/proto/
+secrets/*.pem
+.DS_Store
+coverage.out

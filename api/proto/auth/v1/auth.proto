@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package auth.v1;
+
+option go_package = "example.com/grpc-clean-starter/gen/proto/auth/v1;authv1";
+
+service AuthService {
+  rpc Login(LoginRequest) returns (LoginResponse);
+  rpc Me(MeRequest) returns (MeResponse);
+}
+
+message LoginRequest {
+  string email = 1;
+  string password = 2;
+}
+
+message LoginResponse {
+  string access_token = 1;
+  int64 expires_at_unix = 2;
+  UserIdentity user = 3;
+}
+
+message MeRequest {}
+
+message MeResponse {
+  UserIdentity user = 1;
+  repeated string roles = 2;
+  repeated string permissions = 3;
+}
+
+message UserIdentity {
+  string id = 1;
+  string name = 2;
+  string email = 3;
+  string provider = 4;
+}

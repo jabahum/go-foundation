@@ -1,0 +1,93 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: grpc_starter
+      POSTGRES_USER: grpc
+      POSTGRES_PASSWORD: grpc
+    ports: ["5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U grpc -d grpc_starter"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  migrate:
+    image: migrate/migrate:v4.18.1
+    volumes:
+      - ./migrations:/migrations:ro
+    command: ["-path", "/migrations", "-database", "postgres://grpc:grpc@postgres:5432/grpc_starter?sslmode=disable", "up"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build: .
+    environment:
+      APP_NAME: grpc-clean-starter
+      APP_ENV: development
+      GRPC_HOST: 0.0.0.0
+      GRPC_PORT: 50051
+      METRICS_ADDR: :9090
+      DATABASE_URL: postgres://grpc:grpc@postgres:5432/grpc_starter?sslmode=disable
+      AUTH_LOCAL_ENABLED: "true"
+      JWT_ISSUER: grpc-clean-starter
+      JWT_AUDIENCE: grpc-api
+      JWT_ACCESS_TOKEN_TTL: 15m
+      JWT_PRIVATE_KEY_FILE: /run/jwt/jwt_private.pem
+      JWT_PUBLIC_KEY_FILE: /run/jwt/jwt_public.pem
+      BOOTSTRAP_ADMIN_EMAIL: admin@example.com
+      BOOTSTRAP_ADMIN_PASSWORD: ChangeMe123!
+      BOOTSTRAP_ADMIN_NAME: Starter Admin
+      OIDC_ENABLED: "false"
+      OTEL_ENABLED: "true"
+      OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+    volumes:
+      - ./secrets:/run/jwt:ro
+    ports:
+      - "50051:50051"
+      - "9090:9090"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      otel-collector:
+        condition: service_started
+
+  prometheus:
+    image: prom/prometheus:v3.1.0
+    command: ["--config.file=/etc/prometheus/prometheus.yml"]
+    volumes:
+      - ./deploy/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports: ["9091:9090"]
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.116.1
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./deploy/otel/collector.yaml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+    depends_on: [jaeger]
+
+  jaeger:
+    image: jaegertracing/all-in-one:1.65.0
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - "16686:16686"
+      - "14250:14250"
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+    ports: ["3000:3000"]
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+volumes:
+  postgres_data:
+  grafana_data:

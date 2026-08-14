@@ -1,0 +1,26 @@
+syntax = "proto3";
+package rbac.v1;
+option go_package = "example.com/grpc-clean-starter/gen/proto/rbac/v1;rbacv1";
+
+service RBACService {
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
+  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse);
+  rpc AssignPermissionToRole(AssignPermissionToRoleRequest) returns (AssignPermissionToRoleResponse);
+  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest) returns (RemovePermissionFromRoleResponse);
+}
+message Role { string id=1; string name=2; string description=3; }
+message Permission { string id=1; string name=2; string resource=3; string action=4; string description=5; }
+message ListRolesRequest {}
+message ListRolesResponse { repeated Role roles=1; }
+message ListPermissionsRequest {}
+message ListPermissionsResponse { repeated Permission permissions=1; }
+message AssignRoleRequest { string user_id=1; string role_id=2; }
+message AssignRoleResponse {}
+message RemoveRoleRequest { string user_id=1; string role_id=2; }
+message RemoveRoleResponse {}
+message AssignPermissionToRoleRequest { string role_id=1; string permission_id=2; }
+message AssignPermissionToRoleResponse {}
+message RemovePermissionFromRoleRequest { string role_id=1; string permission_id=2; }
+message RemovePermissionFromRoleResponse {}
