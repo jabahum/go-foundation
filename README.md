@@ -205,6 +205,22 @@ make test
 
 Unit tests use the in-memory repository where appropriate. PostgreSQL integration tests can be added under `tests/integration` without changing application code.
 
+## Foundry
+
+The versioned foundation archive is available through this repository's Foundry registry:
+
+```bash
+foundry template update \
+  --registry https://raw.githubusercontent.com/jabahum/go-foundation/main/registry.json
+
+foundry new my-service \
+  --template go-grpc-clean \
+  --version 1.0.0 \
+  --module github.com/example/my-service
+```
+
+Foundry verifies the release archive against the SHA-256 digest in `registry.json` before caching it.
+
 ## Health and operations
 
 Check standard gRPC health:

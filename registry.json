@@ -1,0 +1,16 @@
+{
+  "schema": 1,
+  "updated_at": "2026-08-30T20:32:09Z",
+  "templates": [
+    {
+      "id": "go-grpc-clean",
+      "name": "Go gRPC Clean Architecture",
+      "version": "1.0.0",
+      "description": "Production Go gRPC foundation",
+      "kind": "go",
+      "aliases": ["go", "grpc", "backend"],
+      "url": "https://github.com/jabahum/go-foundation/releases/download/v1.0.0/go-grpc-clean-1.0.0.zip",
+      "sha256": "87a7309f8ce0f18f50c180d6a3865dec11f4317ad9d15b14c3183002a3980455"
+    }
+  ]
+}
