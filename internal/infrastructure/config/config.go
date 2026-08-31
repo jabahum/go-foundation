@@ -37,7 +37,7 @@ type DatabaseConfig struct {
 type AuthConfig struct {
 	LocalEnabled                                    bool
 	Issuer, Audience, PrivateKeyFile, PublicKeyFile string
-	TokenTTL                                        time.Duration
+	TokenTTL, RefreshTokenTTL                       time.Duration
 }
 type OIDCConfig struct {
 	Enabled             bool
@@ -77,6 +77,16 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	if ttl <= 0 {
+		return nil, fmt.Errorf("JWT_ACCESS_TOKEN_TTL must be positive")
+	}
+	refreshTTL, err := durationEnv("JWT_REFRESH_TOKEN_TTL", 30*24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+	if refreshTTL <= 0 {
+		return nil, fmt.Errorf("JWT_REFRESH_TOKEN_TTL must be positive")
+	}
 	local, err := boolEnv("AUTH_LOCAL_ENABLED", true)
 	if err != nil {
 		return nil, err
@@ -108,7 +118,7 @@ func Load() (*Config, error) {
 		GRPC:          GRPCConfig{Host: strEnv("GRPC_HOST", "0.0.0.0"), Port: port, MetricsAddr: strEnv("METRICS_ADDR", ":9090")},
 		HTTP:          HTTPConfig{Host: strEnv("HTTP_HOST", "0.0.0.0"), Port: httpPort, DocsEnabled: docsEnabled},
 		Database:      DatabaseConfig{URL: db, MaxConnections: int32(maxc), MinConnections: int32(minc)},
-		Auth:          AuthConfig{LocalEnabled: local, Issuer: issuer, Audience: aud, PrivateKeyFile: priv, PublicKeyFile: pub, TokenTTL: ttl},
+		Auth:          AuthConfig{LocalEnabled: local, Issuer: issuer, Audience: aud, PrivateKeyFile: priv, PublicKeyFile: pub, TokenTTL: ttl, RefreshTokenTTL: refreshTTL},
 		OIDC:          OIDCConfig{Enabled: oidcEnabled, IssuerURL: os.Getenv("OIDC_ISSUER_URL"), ClientID: os.Getenv("OIDC_CLIENT_ID")},
 		Observability: ObservabilityConfig{OTelEnabled: otelEnabled, OTLPEndpoint: strEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317")},
 	}, nil

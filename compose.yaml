@@ -38,6 +38,7 @@ services:
       JWT_ISSUER: go-foundation
       JWT_AUDIENCE: grpc-api
       JWT_ACCESS_TOKEN_TTL: 15m
+      JWT_REFRESH_TOKEN_TTL: 720h
       JWT_PRIVATE_KEY_FILE: /run/jwt/jwt_private.pem
       JWT_PUBLIC_KEY_FILE: /run/jwt/jwt_public.pem
       BOOTSTRAP_ADMIN_EMAIL: admin@example.com

@@ -18,8 +18,9 @@ type JWTProvider struct {
 	ttl              time.Duration
 }
 type claims struct {
-	Username string `json:"preferred_username"`
-	Email    string `json:"email"`
+	Username  string `json:"preferred_username"`
+	Email     string `json:"email"`
+	SessionID string `json:"sid,omitempty"`
 	jwt.RegisteredClaims
 }
 
@@ -45,7 +46,7 @@ func NewJWTProvider(privateFile, publicFile, issuer, audience string, ttl time.D
 func (p *JWTProvider) Issue(ctx context.Context, id auth.Identity) (*auth.Token, error) {
 	now := time.Now().UTC()
 	exp := now.Add(p.ttl)
-	c := claims{Username: id.Username, Email: id.Email, RegisteredClaims: jwt.RegisteredClaims{Issuer: p.issuer, Subject: id.UserID, Audience: jwt.ClaimStrings{p.audience}, IssuedAt: jwt.NewNumericDate(now), ExpiresAt: jwt.NewNumericDate(exp)}}
+	c := claims{Username: id.Username, Email: id.Email, SessionID: id.SessionID, RegisteredClaims: jwt.RegisteredClaims{Issuer: p.issuer, Subject: id.UserID, Audience: jwt.ClaimStrings{p.audience}, IssuedAt: jwt.NewNumericDate(now), ExpiresAt: jwt.NewNumericDate(exp)}}
 	t := jwt.NewWithClaims(jwt.SigningMethodRS256, c)
 	raw, err := t.SignedString(p.privateKey)
 	if err != nil {
@@ -67,5 +68,5 @@ func (p *JWTProvider) Verify(ctx context.Context, raw string) (*auth.Identity, e
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}
-	return &auth.Identity{UserID: c.Subject, Username: c.Username, Email: c.Email, Provider: "local"}, nil
+	return &auth.Identity{UserID: c.Subject, Username: c.Username, Email: c.Email, Provider: "local", SessionID: c.SessionID}, nil
 }

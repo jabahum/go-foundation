@@ -6,10 +6,11 @@ import (
 )
 
 type Identity struct {
-	UserID   string
-	Username string
-	Email    string
-	Provider string
+	UserID    string
+	Username  string
+	Email     string
+	Provider  string
+	SessionID string
 }
 
 type Token struct {
