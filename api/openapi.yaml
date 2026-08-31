@@ -29,3 +29,13 @@ openapiOptions:
         summary: Authenticate with local credentials
         security:
           - securityRequirement: {}
+    - method: auth.v1.AuthService.Refresh
+      option:
+        summary: Rotate a refresh token and issue a new token pair
+        security:
+          - securityRequirement: {}
+    - method: auth.v1.AuthService.Logout
+      option:
+        summary: Revoke a refresh-token session
+        security:
+          - securityRequirement: {}

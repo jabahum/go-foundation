@@ -74,6 +74,7 @@ Copy the returned token:
 
 ```bash
 export ACCESS_TOKEN='...'
+export REFRESH_TOKEN='...'
 ```
 
 The same API is available over HTTP/JSON:
@@ -92,6 +93,43 @@ grpcurl -plaintext \
   localhost:50051 \
   auth.v1.AuthService/Me
 ```
+
+## Refresh tokens and sessions
+
+Local login returns a short-lived JWT access token and an opaque refresh token. Refresh tokens are shown only in login and refresh responses; PostgreSQL stores only their SHA-256 hashes. A successful refresh rotates the token atomically, so the previous value cannot be used again. Sessions have an absolute lifetime controlled by `JWT_REFRESH_TOKEN_TTL` (default `720h`).
+
+```bash
+grpcurl -plaintext \
+  -d "{\"refreshToken\":\"${REFRESH_TOKEN}\"}" \
+  localhost:50051 \
+  auth.v1.AuthService/Refresh
+```
+
+Replace both locally stored tokens with the values from every successful refresh response. To log out, revoke the session using its current refresh token:
+
+```bash
+grpcurl -plaintext \
+  -d "{\"refreshToken\":\"${REFRESH_TOKEN}\"}" \
+  localhost:50051 \
+  auth.v1.AuthService/Logout
+```
+
+Authenticated users can inspect and revoke their own active sessions:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  localhost:50051 \
+  auth.v1.AuthService/ListSessions
+
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -d '{"sessionId":"SESSION_UUID"}' \
+  localhost:50051 \
+  auth.v1.AuthService/RevokeSession
+```
+
+Revocation prevents further refreshes. Existing stateless access tokens remain valid until their short expiry, so keep `JWT_ACCESS_TOKEN_TTL` appropriately brief. Clients should keep refresh tokens in platform-secure storage and never local browser storage.
 
 ## Create a user
 

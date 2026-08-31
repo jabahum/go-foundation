@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
 	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
 	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
 	audit "github.com/jabahum/go-foundation/internal/domain/audit"
@@ -60,6 +61,9 @@ func AuditUnary(repo audit.Repository, logger *slog.Logger) grpc.UnaryServerInte
 
 func mutationEvent(method string, req, response any) (*audit.Event, bool) {
 	switch method {
+	case "/auth.v1.AuthService/RevokeSession":
+		value, _ := req.(*authv1.RevokeSessionRequest)
+		return &audit.Event{Action: "session.revoke", ResourceType: "session", ResourceID: value.GetSessionId(), Metadata: map[string]string{}}, true
 	case "/user.v1.UserService/CreateUser":
 		event := &audit.Event{Action: "user.create", ResourceType: "user", Metadata: map[string]string{}}
 		if value, ok := response.(*userv1.CreateUserResponse); ok && value.GetUser() != nil {

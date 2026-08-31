@@ -70,6 +70,7 @@ func run(logger *slog.Logger) error {
 	userRepo := postgresrepo.NewUserRepository(db)
 	rbacRepo := postgresrepo.NewRBACRepository(db)
 	auditRepo := postgresrepo.NewAuditRepository(db)
+	sessionRepo := postgresrepo.NewSessionRepository(db)
 	rbacService := apprbac.NewService(rbacRepo)
 	userService := appuser.NewService(userRepo, hasher)
 	auditService := appaudit.NewService(auditRepo)
@@ -118,6 +119,8 @@ func run(logger *slog.Logger) error {
 		"/grpc.health.v1.Health/Watch": {},
 	}
 	public["/auth.v1.AuthService/Login"] = struct{}{}
+	public["/auth.v1.AuthService/Refresh"] = struct{}{}
+	public["/auth.v1.AuthService/Logout"] = struct{}{}
 
 	unary := []grpc.UnaryServerInterceptor{
 		interceptor.RequestIDUnary(),
@@ -142,7 +145,7 @@ func run(logger *slog.Logger) error {
 	rbacv1.RegisterRBACServiceServer(grpcServer, transportgrpc.NewRBACHandler(rbacService))
 	var loginService *appauth.Service
 	if cfg.Auth.LocalEnabled {
-		loginService = appauth.NewService(userRepo, hasher, localJWT)
+		loginService = appauth.NewService(userRepo, hasher, localJWT, sessionRepo, cfg.Auth.RefreshTokenTTL)
 	}
 	authv1.RegisterAuthServiceServer(grpcServer, transportgrpc.NewAuthHandler(loginService, userRepo, rbacService))
 
