@@ -2,9 +2,9 @@ package oidc
 
 import (
 	"context"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
 	"fmt"
 	coreoidc "github.com/coreos/go-oidc/v3/oidc"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
 )
 
 type Verifier struct{ verifier *coreoidc.IDTokenVerifier }

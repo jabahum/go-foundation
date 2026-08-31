@@ -2,7 +2,7 @@ package memory
 
 import (
 	"context"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 	"strings"
 	"sync"
 )

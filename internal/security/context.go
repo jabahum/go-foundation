@@ -2,7 +2,7 @@ package security
 
 import (
 	"context"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
 )
 
 type contextKey string

@@ -1,6 +1,6 @@
 syntax = "proto3";
 package rbac.v1;
-option go_package = "example.com/grpc-clean-starter/gen/proto/rbac/v1;rbacv1";
+option go_package = "github.com/jabahum/go-foundation/gen/proto/rbac/v1;rbacv1";
 
 service RBACService {
   rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);

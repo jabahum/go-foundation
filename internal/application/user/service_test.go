@@ -3,10 +3,10 @@ package user_test
 import (
 	"context"
 	"errors"
-	appuser "example.com/grpc-clean-starter/internal/application/user"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
-	"example.com/grpc-clean-starter/internal/infrastructure/auth/local"
-	"example.com/grpc-clean-starter/internal/infrastructure/persistence/memory"
+	appuser "github.com/jabahum/go-foundation/internal/application/user"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
+	"github.com/jabahum/go-foundation/internal/infrastructure/auth/local"
+	"github.com/jabahum/go-foundation/internal/infrastructure/persistence/memory"
 	"testing"
 )
 

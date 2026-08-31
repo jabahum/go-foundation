@@ -2,9 +2,9 @@ package bootstrap
 
 import (
 	"context"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
 	"fmt"
 	"github.com/google/uuid"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"time"

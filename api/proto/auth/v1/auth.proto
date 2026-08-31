@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package auth.v1;
 
-option go_package = "example.com/grpc-clean-starter/gen/proto/auth/v1;authv1";
+option go_package = "github.com/jabahum/go-foundation/gen/proto/auth/v1;authv1";
 
 service AuthService {
   rpc Login(LoginRequest) returns (LoginResponse);

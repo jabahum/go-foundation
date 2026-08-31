@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"context"
-	"example.com/grpc-clean-starter/internal/infrastructure/observability"
+	"github.com/jabahum/go-foundation/internal/infrastructure/observability"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"
 	"time"

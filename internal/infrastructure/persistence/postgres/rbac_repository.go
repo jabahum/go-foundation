@@ -2,7 +2,7 @@ package postgres
 
 import (
 	"context"
-	domainrbac "example.com/grpc-clean-starter/internal/domain/rbac"
+	domainrbac "github.com/jabahum/go-foundation/internal/domain/rbac"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

@@ -3,9 +3,9 @@ package local
 import (
 	"context"
 	"crypto/rsa"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
 	"fmt"
 	"github.com/golang-jwt/jwt/v5"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
 	"os"
 	"time"
 )

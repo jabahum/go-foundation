@@ -3,8 +3,8 @@ package postgres
 import (
 	"context"
 	"errors"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
 	"fmt"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/jackc/pgx/v5/pgxpool"

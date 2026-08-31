@@ -2,7 +2,7 @@ package rbac
 
 import (
 	"context"
-	domainrbac "example.com/grpc-clean-starter/internal/domain/rbac"
+	domainrbac "github.com/jabahum/go-foundation/internal/domain/rbac"
 )
 
 type Service struct{ repo domainrbac.Repository }

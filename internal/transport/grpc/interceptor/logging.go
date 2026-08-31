@@ -2,7 +2,7 @@ package interceptor
 
 import (
 	"context"
-	"example.com/grpc-clean-starter/internal/security"
+	"github.com/jabahum/go-foundation/internal/security"
 	"go.opentelemetry.io/otel/trace"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/status"

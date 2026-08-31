@@ -3,11 +3,11 @@ package grpc
 import (
 	"context"
 	"errors"
-	authv1 "example.com/grpc-clean-starter/gen/proto/auth/v1"
-	appauth "example.com/grpc-clean-starter/internal/application/auth"
-	apprbac "example.com/grpc-clean-starter/internal/application/rbac"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
-	"example.com/grpc-clean-starter/internal/security"
+	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
+	appauth "github.com/jabahum/go-foundation/internal/application/auth"
+	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
+	"github.com/jabahum/go-foundation/internal/security"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

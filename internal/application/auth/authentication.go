@@ -3,8 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 var ErrInvalidToken = errors.New("invalid access token")

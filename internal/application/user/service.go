@@ -5,12 +5,13 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
 	"fmt"
-	"github.com/google/uuid"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 type Service struct {

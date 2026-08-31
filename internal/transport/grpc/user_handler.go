@@ -3,9 +3,9 @@ package grpc
 import (
 	"context"
 	"errors"
-	userv1 "example.com/grpc-clean-starter/gen/proto/user/v1"
-	appuser "example.com/grpc-clean-starter/internal/application/user"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
+	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
+	appuser "github.com/jabahum/go-foundation/internal/application/user"
+	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
