@@ -2,12 +2,13 @@ package rbac
 
 import (
 	"context"
-	domainrbac "github.com/jabahum/go-foundation/internal/domain/rbac"
+
+	rbac "github.com/jabahum/go-foundation/internal/domain/rbac"
 )
 
-type Service struct{ repo domainrbac.Repository }
+type Service struct{ repo rbac.Repository }
 
-func NewService(r domainrbac.Repository) *Service { return &Service{repo: r} }
+func NewService(r rbac.Repository) *Service { return &Service{repo: r} }
 func (s *Service) HasPermission(ctx context.Context, userID, permission string) (bool, error) {
 	ps, err := s.repo.UserPermissions(ctx, userID)
 	if err != nil {
@@ -20,16 +21,16 @@ func (s *Service) HasPermission(ctx context.Context, userID, permission string) 
 	}
 	return false, nil
 }
-func (s *Service) Roles(ctx context.Context, userID string) ([]domainrbac.Role, error) {
+func (s *Service) Roles(ctx context.Context, userID string) ([]rbac.Role, error) {
 	return s.repo.UserRoles(ctx, userID)
 }
-func (s *Service) Permissions(ctx context.Context, userID string) ([]domainrbac.Permission, error) {
+func (s *Service) Permissions(ctx context.Context, userID string) ([]rbac.Permission, error) {
 	return s.repo.UserPermissions(ctx, userID)
 }
-func (s *Service) ListRoles(ctx context.Context) ([]domainrbac.Role, error) {
+func (s *Service) ListRoles(ctx context.Context) ([]rbac.Role, error) {
 	return s.repo.ListRoles(ctx)
 }
-func (s *Service) ListPermissions(ctx context.Context) ([]domainrbac.Permission, error) {
+func (s *Service) ListPermissions(ctx context.Context) ([]rbac.Permission, error) {
 	return s.repo.ListPermissions(ctx)
 }
 func (s *Service) AssignRole(ctx context.Context, userID, roleID string) error {

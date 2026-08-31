@@ -2,6 +2,7 @@ package grpc
 
 import (
 	"context"
+
 	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
 	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
 	"google.golang.org/grpc/codes"

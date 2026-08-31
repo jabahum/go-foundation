@@ -2,24 +2,25 @@ package postgres
 
 import (
 	"context"
-	domainrbac "github.com/jabahum/go-foundation/internal/domain/rbac"
+
+	rbac "github.com/jabahum/go-foundation/internal/domain/rbac"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type RBACRepository struct{ db *pgxpool.Pool }
 
-var _ domainrbac.Repository = (*RBACRepository)(nil)
+var _ rbac.Repository = (*RBACRepository)(nil)
 
 func NewRBACRepository(db *pgxpool.Pool) *RBACRepository { return &RBACRepository{db: db} }
-func (r *RBACRepository) UserPermissions(ctx context.Context, userID string) ([]domainrbac.Permission, error) {
+func (r *RBACRepository) UserPermissions(ctx context.Context, userID string) ([]rbac.Permission, error) {
 	rows, err := r.db.Query(ctx, `SELECT DISTINCT p.id,p.name,p.resource,p.action,COALESCE(p.description,'') FROM user_roles ur JOIN role_permissions rp ON rp.role_id=ur.role_id JOIN permissions p ON p.id=rp.permission_id WHERE ur.user_id=$1 ORDER BY p.name`, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domainrbac.Permission
+	var out []rbac.Permission
 	for rows.Next() {
-		var p domainrbac.Permission
+		var p rbac.Permission
 		if err := rows.Scan(&p.ID, &p.Name, &p.Resource, &p.Action, &p.Description); err != nil {
 			return nil, err
 		}
@@ -27,15 +28,15 @@ func (r *RBACRepository) UserPermissions(ctx context.Context, userID string) ([]
 	}
 	return out, rows.Err()
 }
-func (r *RBACRepository) UserRoles(ctx context.Context, userID string) ([]domainrbac.Role, error) {
+func (r *RBACRepository) UserRoles(ctx context.Context, userID string) ([]rbac.Role, error) {
 	rows, err := r.db.Query(ctx, `SELECT r.id,r.name,COALESCE(r.description,'') FROM user_roles ur JOIN roles r ON r.id=ur.role_id WHERE ur.user_id=$1 ORDER BY r.name`, userID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domainrbac.Role
+	var out []rbac.Role
 	for rows.Next() {
-		var x domainrbac.Role
+		var x rbac.Role
 		if err := rows.Scan(&x.ID, &x.Name, &x.Description); err != nil {
 			return nil, err
 		}
@@ -59,15 +60,15 @@ func (r *RBACRepository) RemovePermissionFromRole(ctx context.Context, role, p s
 	_, e := r.db.Exec(ctx, `DELETE FROM role_permissions WHERE role_id=$1 AND permission_id=$2`, role, p)
 	return e
 }
-func (r *RBACRepository) ListRoles(ctx context.Context) ([]domainrbac.Role, error) {
+func (r *RBACRepository) ListRoles(ctx context.Context) ([]rbac.Role, error) {
 	rows, err := r.db.Query(ctx, `SELECT id,name,COALESCE(description,'') FROM roles ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domainrbac.Role
+	var out []rbac.Role
 	for rows.Next() {
-		var x domainrbac.Role
+		var x rbac.Role
 		if err := rows.Scan(&x.ID, &x.Name, &x.Description); err != nil {
 			return nil, err
 		}
@@ -75,15 +76,15 @@ func (r *RBACRepository) ListRoles(ctx context.Context) ([]domainrbac.Role, erro
 	}
 	return out, rows.Err()
 }
-func (r *RBACRepository) ListPermissions(ctx context.Context) ([]domainrbac.Permission, error) {
+func (r *RBACRepository) ListPermissions(ctx context.Context) ([]rbac.Permission, error) {
 	rows, err := r.db.Query(ctx, `SELECT id,name,resource,action,COALESCE(description,'') FROM permissions ORDER BY name`)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var out []domainrbac.Permission
+	var out []rbac.Permission
 	for rows.Next() {
-		var x domainrbac.Permission
+		var x rbac.Permission
 		if err := rows.Scan(&x.ID, &x.Name, &x.Resource, &x.Action, &x.Description); err != nil {
 			return nil, err
 		}
