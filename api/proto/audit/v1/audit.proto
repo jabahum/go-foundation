@@ -1,0 +1,48 @@
+syntax = "proto3";
+
+package audit.v1;
+
+option go_package = "github.com/jabahum/go-foundation/gen/proto/audit/v1;auditv1";
+
+import "buf/validate/validate.proto";
+import "google/api/annotations.proto";
+import "google/protobuf/timestamp.proto";
+
+service AuditService {
+  rpc ListAuditEvents(ListAuditEventsRequest) returns (ListAuditEventsResponse) {
+    option (google.api.http) = {get: "/v1/audit-events"};
+  }
+}
+
+message AuditEvent {
+  string id = 1;
+  google.protobuf.Timestamp occurred_at = 2;
+  string actor_id = 3;
+  string action = 4;
+  string resource_type = 5;
+  string resource_id = 6;
+  string request_id = 7;
+  string rpc_method = 8;
+  string grpc_code = 9;
+  string error_reason = 10;
+  string client_ip = 11;
+  string user_agent = 12;
+  map<string, string> metadata = 13;
+}
+
+message ListAuditEventsRequest {
+  int32 page_size = 1 [
+    (buf.validate.field).int32.gte = 0,
+    (buf.validate.field).int32.lte = 100
+  ];
+  string page_token = 2 [(buf.validate.field).string.max_len = 2048];
+  string actor_id = 3 [(buf.validate.field).string.max_len = 36];
+  string action = 4 [(buf.validate.field).string.max_len = 100];
+  string resource_type = 5 [(buf.validate.field).string.max_len = 100];
+  string resource_id = 6 [(buf.validate.field).string.max_len = 255];
+}
+
+message ListAuditEventsResponse {
+  repeated AuditEvent events = 1;
+  string next_page_token = 2;
+}

@@ -4,6 +4,7 @@
     "appauth",
     "apprbac",
     "appuser",
+    "auditv",
     "authv",
     "bufbuild",
     "bufconn",

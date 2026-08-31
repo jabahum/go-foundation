@@ -13,9 +13,11 @@ import (
 	"syscall"
 	"time"
 
+	auditv1 "github.com/jabahum/go-foundation/gen/proto/audit/v1"
 	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
 	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
 	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
+	appaudit "github.com/jabahum/go-foundation/internal/application/audit"
 	appauth "github.com/jabahum/go-foundation/internal/application/auth"
 	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
 	appuser "github.com/jabahum/go-foundation/internal/application/user"
@@ -67,8 +69,10 @@ func run(logger *slog.Logger) error {
 
 	userRepo := postgresrepo.NewUserRepository(db)
 	rbacRepo := postgresrepo.NewRBACRepository(db)
+	auditRepo := postgresrepo.NewAuditRepository(db)
 	rbacService := apprbac.NewService(rbacRepo)
 	userService := appuser.NewService(userRepo, hasher)
+	auditService := appaudit.NewService(auditRepo)
 
 	var verifiers []auth.TokenVerifier
 	var localJWT *local.JWTProvider
@@ -121,6 +125,7 @@ func run(logger *slog.Logger) error {
 		interceptor.AuthenticationUnary(authn, public),
 		interceptor.ValidationUnary(),
 		interceptor.AuthorizationUnary(rbacService, policy.Policies(), func(p string) { metrics.Denied.WithLabelValues(p).Inc() }),
+		interceptor.AuditUnary(auditRepo, logger),
 		interceptor.MetricsUnary(metrics),
 		interceptor.LoggingUnary(logger),
 		interceptor.RecoveryUnary(logger),
@@ -132,6 +137,7 @@ func run(logger *slog.Logger) error {
 	}
 	grpcServer := grpc.NewServer(serverOptions...)
 
+	auditv1.RegisterAuditServiceServer(grpcServer, transportgrpc.NewAuditHandler(auditService))
 	userv1.RegisterUserServiceServer(grpcServer, transportgrpc.NewUserHandler(userService))
 	rbacv1.RegisterRBACServiceServer(grpcServer, transportgrpc.NewRBACHandler(rbacService))
 	var loginService *appauth.Service

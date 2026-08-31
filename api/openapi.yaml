@@ -1,6 +1,6 @@
 openapiOptions:
   file:
-    - file: auth/v1/auth.proto
+    - file: audit/v1/audit.proto
       option:
         info:
           title: go-foundation API
