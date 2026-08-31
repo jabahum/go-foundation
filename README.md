@@ -1,6 +1,6 @@
 # go-foundation
 
-A production-oriented Go foundation using gRPC, Protocol Buffers, Clean Architecture, PostgreSQL, local RBAC, local JWT authentication, optional OIDC/Keycloak authentication, Prometheus, OpenTelemetry, Jaeger, Docker Compose, migrations, pagination, health checks, graceful shutdown, structured logging, and tests.
+A production-oriented Go foundation using gRPC, Protocol Buffers, Clean Architecture, PostgreSQL, local RBAC, audit trails, local JWT authentication, optional OIDC/Keycloak authentication, Prometheus, OpenTelemetry, Jaeger, Docker Compose, migrations, pagination, health checks, graceful shutdown, structured logging, and tests.
 
 ## Architecture
 
@@ -10,6 +10,7 @@ Client
   -> request ID
   -> authentication (local JWT or optional OIDC)
   -> local RBAC permission lookup
+  -> audit capture for mutations
   -> metrics / logging / recovery
   -> transport handler
   -> application use case
@@ -146,6 +147,22 @@ grpcurl -plaintext \
 
 The gRPC authorization policy checks permissions, never hard-coded role names.
 
+## Audit trail
+
+Authorized user creation and RBAC mutations are recorded in the append-only `audit_events` table. Each event contains the actor, action, target, request ID, RPC method, gRPC outcome, structured error reason, client address, user agent, timestamp, and explicitly allow-listed metadata. Complete request bodies are never serialized, so passwords and access tokens cannot enter the audit trail.
+
+Only callers with `audit:read` can query the trail; the default `super_admin` role receives that permission. Results use cursor pagination and can be filtered by actor, action, resource type, or resource ID:
+
+```bash
+grpcurl -plaintext \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -d '{"pageSize":50,"action":"role.assign"}' \
+  localhost:50051 \
+  audit.v1.AuditService/ListAuditEvents
+```
+
+The equivalent HTTP endpoint is `GET /v1/audit-events`. Audit persistence failures are logged with the request ID but do not rewrite an already-completed business operation into a client-visible failure.
+
 ## Default permissions
 
 - `users:read`
@@ -156,6 +173,7 @@ The gRPC authorization policy checks permissions, never hard-coded role names.
 - `roles:read`
 - `roles:manage`
 - `roles:assign`
+- `audit:read`
 
 Default roles are `super_admin`, `user_admin`, and `viewer`.
 
@@ -193,6 +211,7 @@ Contracts are versioned under:
 
 ```text
 api/proto/auth/v1
+api/proto/audit/v1
 api/proto/user/v1
 api/proto/rbac/v1
 ```

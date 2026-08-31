@@ -1,9 +1,11 @@
 {
   "cSpell.words": [
     "apierror",
+    "appaudit",
     "appauth",
     "apprbac",
     "appuser",
+    "auditv",
     "authv",
     "bufbuild",
     "bufconn",
