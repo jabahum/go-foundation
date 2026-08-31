@@ -4,6 +4,7 @@ package auth.v1;
 
 option go_package = "github.com/jabahum/go-foundation/gen/proto/auth/v1;authv1";
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 
 service AuthService {
@@ -19,8 +20,14 @@ service AuthService {
 }
 
 message LoginRequest {
-  string email = 1;
-  string password = 2;
+  string email = 1 [
+    (buf.validate.field).string.email = true,
+    (buf.validate.field).string.max_len = 254
+  ];
+  string password = 2 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 128
+  ];
 }
 
 message LoginResponse {

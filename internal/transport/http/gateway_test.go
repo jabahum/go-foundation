@@ -10,6 +10,7 @@ import (
 	"testing"
 
 	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
+	grpcinterceptor "github.com/jabahum/go-foundation/internal/transport/grpc/interceptor"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/metadata"
@@ -31,7 +32,11 @@ func (s *testAuthServer) Login(ctx context.Context, _ *authv1.LoginRequest) (*au
 
 func TestGatewayTranscodesHTTPToGRPC(t *testing.T) {
 	listener := bufconn.Listen(1024 * 1024)
-	grpcServer := grpc.NewServer()
+	grpcServer := grpc.NewServer(grpc.ChainUnaryInterceptor(
+		grpcinterceptor.RequestIDUnary(),
+		grpcinterceptor.ErrorDetailsUnary(),
+		grpcinterceptor.ValidationUnary(),
+	))
 	authv1.RegisterAuthServiceServer(grpcServer, &testAuthServer{t: t})
 	go func() {
 		_ = grpcServer.Serve(listener)
@@ -54,7 +59,7 @@ func TestGatewayTranscodesHTTPToGRPC(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	request := httptest.NewRequest(http.MethodPost, "/v1/auth/login", strings.NewReader(`{}`))
+	request := httptest.NewRequest(http.MethodPost, "/v1/auth/login", strings.NewReader(`{"email":"ada@example.com","password":"password"}`))
 	request.Header.Set("Content-Type", "application/json")
 	request.Header.Set("Authorization", "Bearer test-token")
 	response := httptest.NewRecorder()
@@ -71,6 +76,20 @@ func TestGatewayTranscodesHTTPToGRPC(t *testing.T) {
 	}
 	if body.AccessToken != "gateway-token" {
 		t.Fatalf("accessToken = %q", body.AccessToken)
+	}
+
+	invalidRequest := httptest.NewRequest(http.MethodPost, "/v1/auth/login", strings.NewReader(`{"email":"invalid","password":""}`))
+	invalidRequest.Header.Set("Content-Type", "application/json")
+	invalidResponse := httptest.NewRecorder()
+	gateway.Handler.ServeHTTP(invalidResponse, invalidRequest)
+	if invalidResponse.Code != http.StatusBadRequest {
+		t.Fatalf("invalid status = %d, body = %s", invalidResponse.Code, invalidResponse.Body.String())
+	}
+	invalidBody := invalidResponse.Body.String()
+	for _, expected := range []string{"REQUEST_VALIDATION_FAILED", "google.rpc.BadRequest", "email", "password"} {
+		if !strings.Contains(invalidBody, expected) {
+			t.Errorf("invalid response is missing %q: %s", expected, invalidBody)
+		}
 	}
 }
 
