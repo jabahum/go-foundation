@@ -26,8 +26,9 @@ type GRPCConfig struct {
 	MetricsAddr string
 }
 type HTTPConfig struct {
-	Host string
-	Port int
+	Host        string
+	Port        int
+	DocsEnabled bool
 }
 type DatabaseConfig struct {
 	URL                            string
@@ -53,6 +54,10 @@ func Load() (*Config, error) {
 		return nil, err
 	}
 	httpPort, err := intEnv("HTTP_PORT", 8080)
+	if err != nil {
+		return nil, err
+	}
+	docsEnabled, err := boolEnv("DOCS_ENABLED", true)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +106,7 @@ func Load() (*Config, error) {
 	return &Config{
 		App:           AppConfig{Name: strEnv("APP_NAME", "go-foundation"), Environment: strEnv("APP_ENV", "development"), ShutdownTimeout: shutdown},
 		GRPC:          GRPCConfig{Host: strEnv("GRPC_HOST", "0.0.0.0"), Port: port, MetricsAddr: strEnv("METRICS_ADDR", ":9090")},
-		HTTP:          HTTPConfig{Host: strEnv("HTTP_HOST", "0.0.0.0"), Port: httpPort},
+		HTTP:          HTTPConfig{Host: strEnv("HTTP_HOST", "0.0.0.0"), Port: httpPort, DocsEnabled: docsEnabled},
 		Database:      DatabaseConfig{URL: db, MaxConnections: int32(maxc), MinConnections: int32(minc)},
 		Auth:          AuthConfig{LocalEnabled: local, Issuer: issuer, Audience: aud, PrivateKeyFile: priv, PublicKeyFile: pub, TokenTTL: ttl},
 		OIDC:          OIDCConfig{Enabled: oidcEnabled, IssuerURL: os.Getenv("OIDC_ISSUER_URL"), ClientID: os.Getenv("OIDC_CLIENT_ID")},

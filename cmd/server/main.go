@@ -155,7 +155,7 @@ func run(logger *slog.Logger) error {
 	defer cancelGateway()
 	httpAddress := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
 	grpcEndpoint := gatewayEndpoint(cfg.GRPC.Host, cfg.GRPC.Port)
-	gatewayServer, err := httptransport.NewGateway(gatewayCtx, httpAddress, grpcEndpoint)
+	gatewayServer, err := httptransport.NewGateway(gatewayCtx, httpAddress, grpcEndpoint, cfg.HTTP.DocsEnabled)
 	if err != nil {
 		return fmt.Errorf("create HTTP gateway: %w", err)
 	}
@@ -168,7 +168,7 @@ func run(logger *slog.Logger) error {
 		}
 	}()
 	go func() {
-		logger.Info("HTTP gateway started", "address", httpAddress, "grpc_endpoint", grpcEndpoint)
+		logger.Info("HTTP gateway started", "address", httpAddress, "grpc_endpoint", grpcEndpoint, "docs_enabled", cfg.HTTP.DocsEnabled)
 		if err := gatewayServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
 			serverErr <- fmt.Errorf("serve HTTP gateway: %w", err)
 		}

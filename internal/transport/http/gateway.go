@@ -14,14 +14,14 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 )
 
-func NewGateway(ctx context.Context, address, grpcEndpoint string) (*http.Server, error) {
+func NewGateway(ctx context.Context, address, grpcEndpoint string, docsEnabled bool) (*http.Server, error) {
 	dialOptions := []grpc.DialOption{
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	}
-	return newGateway(ctx, address, grpcEndpoint, dialOptions)
+	return newGateway(ctx, address, grpcEndpoint, docsEnabled, dialOptions)
 }
 
-func newGateway(ctx context.Context, address, grpcEndpoint string, dialOptions []grpc.DialOption) (*http.Server, error) {
+func newGateway(ctx context.Context, address, grpcEndpoint string, docsEnabled bool, dialOptions []grpc.DialOption) (*http.Server, error) {
 	mux := runtime.NewServeMux()
 	if err := authv1.RegisterAuthServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, dialOptions); err != nil {
 		return nil, fmt.Errorf("register auth gateway: %w", err)
@@ -32,10 +32,14 @@ func newGateway(ctx context.Context, address, grpcEndpoint string, dialOptions [
 	if err := rbacv1.RegisterRBACServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, dialOptions); err != nil {
 		return nil, fmt.Errorf("register rbac gateway: %w", err)
 	}
+	handler, err := withDocumentation(mux, docsEnabled)
+	if err != nil {
+		return nil, err
+	}
 
 	return &http.Server{
 		Addr:              address,
-		Handler:           mux,
+		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}, nil
 }

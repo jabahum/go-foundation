@@ -46,6 +46,7 @@ Services:
 
 - gRPC: `localhost:50051`
 - HTTP/JSON gateway: `localhost:8080`
+- interactive API documentation: `localhost:8080/docs/`
 - application metrics: `localhost:9090/metrics`
 - Prometheus: `localhost:9091`
 - Jaeger: `localhost:16686`
@@ -196,7 +197,7 @@ api/proto/user/v1
 api/proto/rbac/v1
 ```
 
-Generated Go and gRPC-Gateway code goes under `gen/proto`. The generated OpenAPI document goes under `gen/openapiv2`. Both directories are ignored by Git.
+Generated Go and gRPC-Gateway code goes under `gen/proto`. The generated OpenAPI document is embedded into the server from `internal/transport/http/docs/go-foundation.swagger.json`; generated files are ignored by Git.
 
 HTTP routes are declared with `google.api.http` annotations in the protobuf service definitions. Requests sent to the gateway on port `8080` pass through the existing gRPC authentication and authorization interceptors. For example:
 
@@ -204,6 +205,8 @@ HTTP routes are declared with `google.api.http` annotations in the protobuf serv
 curl http://localhost:8080/v1/users \
   -H "Authorization: Bearer ${ACCESS_TOKEN}"
 ```
+
+Swagger UI and its pinned assets are embedded in the application binary and served at `/docs/`; the underlying specification is available at `/openapi.json`. Documentation metadata and security declarations live in `api/openapi.yaml`, keeping presentation-only OpenAPI options out of the protobuf contracts. Set `DOCS_ENABLED=false` to disable both documentation endpoints, such as in a production deployment where the API surface should not be published.
 
 ## Database migrations
 
