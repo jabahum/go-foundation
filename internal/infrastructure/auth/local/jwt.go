@@ -4,10 +4,11 @@ import (
 	"context"
 	"crypto/rsa"
 	"fmt"
-	"github.com/golang-jwt/jwt/v5"
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
 	"os"
 	"time"
+
+	"github.com/golang-jwt/jwt/v5"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 )
 
 type JWTProvider struct {
@@ -41,7 +42,7 @@ func NewJWTProvider(privateFile, publicFile, issuer, audience string, ttl time.D
 	}
 	return &JWTProvider{privateKey: priv, publicKey: pub, issuer: issuer, audience: audience, ttl: ttl}, nil
 }
-func (p *JWTProvider) Issue(ctx context.Context, id domainauth.Identity) (*domainauth.Token, error) {
+func (p *JWTProvider) Issue(ctx context.Context, id auth.Identity) (*auth.Token, error) {
 	now := time.Now().UTC()
 	exp := now.Add(p.ttl)
 	c := claims{Username: id.Username, Email: id.Email, RegisteredClaims: jwt.RegisteredClaims{Issuer: p.issuer, Subject: id.UserID, Audience: jwt.ClaimStrings{p.audience}, IssuedAt: jwt.NewNumericDate(now), ExpiresAt: jwt.NewNumericDate(exp)}}
@@ -50,9 +51,9 @@ func (p *JWTProvider) Issue(ctx context.Context, id domainauth.Identity) (*domai
 	if err != nil {
 		return nil, err
 	}
-	return &domainauth.Token{AccessToken: raw, ExpiresAt: exp}, nil
+	return &auth.Token{AccessToken: raw, ExpiresAt: exp}, nil
 }
-func (p *JWTProvider) Verify(ctx context.Context, raw string) (*domainauth.Identity, error) {
+func (p *JWTProvider) Verify(ctx context.Context, raw string) (*auth.Identity, error) {
 	parsed, err := jwt.ParseWithClaims(raw, &claims{}, func(t *jwt.Token) (interface{}, error) {
 		if t.Method != jwt.SigningMethodRS256 {
 			return nil, fmt.Errorf("unexpected signing method")
@@ -66,5 +67,5 @@ func (p *JWTProvider) Verify(ctx context.Context, raw string) (*domainauth.Ident
 	if !ok {
 		return nil, fmt.Errorf("invalid claims")
 	}
-	return &domainauth.Identity{UserID: c.Subject, Username: c.Username, Email: c.Email, Provider: "local"}, nil
+	return &auth.Identity{UserID: c.Subject, Username: c.Username, Email: c.Email, Provider: "local"}, nil
 }

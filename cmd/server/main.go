@@ -18,7 +18,7 @@ import (
 	appauth "github.com/jabahum/go-foundation/internal/application/auth"
 	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
 	appuser "github.com/jabahum/go-foundation/internal/application/user"
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 	"github.com/jabahum/go-foundation/internal/infrastructure/auth/local"
 	oidcauth "github.com/jabahum/go-foundation/internal/infrastructure/auth/oidc"
 	"github.com/jabahum/go-foundation/internal/infrastructure/bootstrap"
@@ -68,7 +68,7 @@ func run(logger *slog.Logger) error {
 	rbacService := apprbac.NewService(rbacRepo)
 	userService := appuser.NewService(userRepo, hasher)
 
-	var verifiers []domainauth.TokenVerifier
+	var verifiers []auth.TokenVerifier
 	var localJWT *local.JWTProvider
 	if cfg.Auth.LocalEnabled {
 		localJWT, err = local.NewJWTProvider(cfg.Auth.PrivateKeyFile, cfg.Auth.PublicKeyFile, cfg.Auth.Issuer, cfg.Auth.Audience, cfg.Auth.TokenTTL)

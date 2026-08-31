@@ -2,17 +2,18 @@ package security
 
 import (
 	"context"
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 )
 
 type contextKey string
 
 const identityKey contextKey = "identity"
 
-func WithIdentity(ctx context.Context, identity *domainauth.Identity) context.Context {
+func WithIdentity(ctx context.Context, identity *auth.Identity) context.Context {
 	return context.WithValue(ctx, identityKey, identity)
 }
-func IdentityFromContext(ctx context.Context) (*domainauth.Identity, bool) {
-	v, ok := ctx.Value(identityKey).(*domainauth.Identity)
+func IdentityFromContext(ctx context.Context) (*auth.Identity, bool) {
+	v, ok := ctx.Value(identityKey).(*auth.Identity)
 	return v, ok
 }

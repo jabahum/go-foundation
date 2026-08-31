@@ -10,13 +10,13 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 	user "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 type Service struct {
 	repo   user.Repository
-	hasher domainauth.PasswordHasher
+	hasher auth.PasswordHasher
 }
 type CreateInput struct{ Name, Email, Password string }
 type ListInput struct {
@@ -32,7 +32,7 @@ type cursor struct {
 	ID        string    `json:"id"`
 }
 
-func NewService(r user.Repository, h domainauth.PasswordHasher) *Service {
+func NewService(r user.Repository, h auth.PasswordHasher) *Service {
 	return &Service{repo: r, hasher: h}
 }
 func (s *Service) Create(ctx context.Context, in CreateInput) (*user.User, error) {

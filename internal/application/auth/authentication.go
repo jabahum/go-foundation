@@ -4,21 +4,21 @@ import (
 	"context"
 	"errors"
 
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 	user "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 var ErrInvalidToken = errors.New("invalid access token")
 
 type AuthenticationService struct {
-	verifiers []domainauth.TokenVerifier
+	verifiers []auth.TokenVerifier
 	users     user.Repository
 }
 
-func NewAuthenticationService(users user.Repository, v ...domainauth.TokenVerifier) *AuthenticationService {
+func NewAuthenticationService(users user.Repository, v ...auth.TokenVerifier) *AuthenticationService {
 	return &AuthenticationService{users: users, verifiers: v}
 }
-func (s *AuthenticationService) Authenticate(ctx context.Context, raw string) (*domainauth.Identity, error) {
+func (s *AuthenticationService) Authenticate(ctx context.Context, raw string) (*auth.Identity, error) {
 	for _, v := range s.verifiers {
 		id, err := v.Verify(ctx, raw)
 		if err != nil {
@@ -37,7 +37,7 @@ func (s *AuthenticationService) Authenticate(ctx context.Context, raw string) (*
 		if err != nil || !u.Enabled {
 			return nil, ErrInvalidToken
 		}
-		return &domainauth.Identity{UserID: u.ID, Username: u.Name, Email: u.Email, Provider: id.Provider}, nil
+		return &auth.Identity{UserID: u.ID, Username: u.Name, Email: u.Email, Provider: id.Provider}, nil
 	}
 	return nil, ErrInvalidToken
 }
