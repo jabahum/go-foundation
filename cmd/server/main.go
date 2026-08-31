@@ -117,7 +117,9 @@ func run(logger *slog.Logger) error {
 
 	unary := []grpc.UnaryServerInterceptor{
 		interceptor.RequestIDUnary(),
+		interceptor.ErrorDetailsUnary(),
 		interceptor.AuthenticationUnary(authn, public),
+		interceptor.ValidationUnary(),
 		interceptor.AuthorizationUnary(rbacService, policy.Policies(), func(p string) { metrics.Denied.WithLabelValues(p).Inc() }),
 		interceptor.MetricsUnary(metrics),
 		interceptor.LoggingUnary(logger),

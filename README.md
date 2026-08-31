@@ -208,6 +208,18 @@ curl http://localhost:8080/v1/users \
 
 Swagger UI and its pinned assets are embedded in the application binary and served at `/docs/`; the underlying specification is available at `/openapi.json`. Documentation metadata and security declarations live in `api/openapi.yaml`, keeping presentation-only OpenAPI options out of the protobuf contracts. Set `DOCS_ENABLED=false` to disable both documentation endpoints, such as in a production deployment where the API surface should not be published.
 
+## Request validation and errors
+
+Request validation rules are declared alongside fields in the protobuf contracts using Protovalidate. A unary interceptor applies them consistently to native gRPC and HTTP/JSON requests before authorization and handler execution.
+
+Errors use `google.rpc.Status` with structured details:
+
+- `google.rpc.ErrorInfo` provides a stable reason, the `go-foundation` domain, and request ID metadata.
+- `google.rpc.BadRequest` identifies every invalid field and its validation failure.
+- `google.rpc.ResourceInfo` identifies resources involved in not-found and conflict errors.
+
+The gRPC-Gateway renders the same details as JSON, so clients can branch on `ErrorInfo.reason` instead of matching human-readable messages. Unexpected Go errors are converted to a generic internal error and are never returned verbatim.
+
 ## Database migrations
 
 ```bash

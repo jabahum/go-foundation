@@ -4,6 +4,7 @@ package user.v1;
 
 option go_package = "github.com/jabahum/go-foundation/gen/proto/user/v1;userv1";
 
+import "buf/validate/validate.proto";
 import "google/api/annotations.proto";
 import "google/protobuf/timestamp.proto";
 
@@ -32,19 +33,34 @@ message User {
 }
 
 message CreateUserRequest {
-  string name = 1;
-  string email = 2;
-  string password = 3;
+  string name = 1 [
+    (buf.validate.field).string.min_len = 1,
+    (buf.validate.field).string.max_len = 100,
+    (buf.validate.field).string.pattern = ".*[^[:space:]].*"
+  ];
+  string email = 2 [
+    (buf.validate.field).string.email = true,
+    (buf.validate.field).string.max_len = 254
+  ];
+  string password = 3 [
+    (buf.validate.field).string.min_len = 8,
+    (buf.validate.field).string.max_len = 128
+  ];
 }
 
 message CreateUserResponse { User user = 1; }
-message GetUserRequest { string id = 1; }
+message GetUserRequest {
+  string id = 1 [(buf.validate.field).string.uuid = true];
+}
 message GetUserResponse { User user = 1; }
 
 message ListUsersRequest {
-  int32 page_size = 1;
-  string page_token = 2;
-  string search = 3;
+  int32 page_size = 1 [
+    (buf.validate.field).int32.gte = 0,
+    (buf.validate.field).int32.lte = 100
+  ];
+  string page_token = 2 [(buf.validate.field).string.max_len = 2048];
+  string search = 3 [(buf.validate.field).string.max_len = 100];
 }
 
 message ListUsersResponse {

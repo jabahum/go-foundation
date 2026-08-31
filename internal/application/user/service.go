@@ -18,6 +18,9 @@ type Service struct {
 	repo   user.Repository
 	hasher auth.PasswordHasher
 }
+
+var ErrInvalidPageToken = errors.New("invalid page token")
+
 type CreateInput struct{ Name, Email, Password string }
 type ListInput struct {
 	PageSize          int
@@ -74,7 +77,7 @@ func (s *Service) List(ctx context.Context, in ListInput) (*ListResult, error) {
 	if in.PageToken != "" {
 		c, err := decodeCursor(in.PageToken)
 		if err != nil {
-			return nil, fmt.Errorf("invalid page token")
+			return nil, ErrInvalidPageToken
 		}
 		f.AfterCreatedAt = &c.CreatedAt
 		f.AfterID = c.ID

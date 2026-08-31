@@ -4,9 +4,9 @@ import (
 	"context"
 	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
 	"github.com/jabahum/go-foundation/internal/security"
+	"github.com/jabahum/go-foundation/internal/transport/grpc/apierror"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
 )
 
 type AuthorizationPolicy map[string]string
@@ -19,17 +19,17 @@ func AuthorizationUnary(svc *apprbac.Service, policies AuthorizationPolicy, deni
 		}
 		id, ok := security.IdentityFromContext(ctx)
 		if !ok {
-			return nil, status.Error(codes.Unauthenticated, "authentication required")
+			return nil, apierror.New(codes.Unauthenticated, "AUTHENTICATION_REQUIRED", "authentication required")
 		}
 		allowed, err := svc.HasPermission(ctx, id.UserID, perm)
 		if err != nil {
-			return nil, status.Error(codes.Internal, "authorization check failed")
+			return nil, apierror.New(codes.Internal, "AUTHORIZATION_CHECK_FAILED", "authorization check failed")
 		}
 		if !allowed {
 			if denied != nil {
 				denied(perm)
 			}
-			return nil, status.Error(codes.PermissionDenied, "insufficient permissions")
+			return nil, apierror.New(codes.PermissionDenied, "INSUFFICIENT_PERMISSIONS", "insufficient permissions")
 		}
 		return handler(ctx, req)
 	}
