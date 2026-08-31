@@ -2,13 +2,13 @@ services:
   postgres:
     image: postgres:17-alpine
     environment:
-      POSTGRES_DB: grpc_starter
+      POSTGRES_DB: go_foundation
       POSTGRES_USER: grpc
       POSTGRES_PASSWORD: grpc
     ports: ["5432:5432"]
     volumes: ["postgres_data:/var/lib/postgresql/data"]
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U grpc -d grpc_starter"]
+      test: ["CMD-SHELL", "pg_isready -U grpc -d go_foundation"]
       interval: 5s
       timeout: 5s
       retries: 20
@@ -17,7 +17,7 @@ services:
     image: migrate/migrate:v4.18.1
     volumes:
       - ./migrations:/migrations:ro
-    command: ["-path", "/migrations", "-database", "postgres://grpc:grpc@postgres:5432/grpc_starter?sslmode=disable", "up"]
+    command: ["-path", "/migrations", "-database", "postgres://grpc:grpc@postgres:5432/go_foundation?sslmode=disable", "up"]
     depends_on:
       postgres:
         condition: service_healthy
@@ -25,14 +25,14 @@ services:
   api:
     build: .
     environment:
-      APP_NAME: grpc-clean-starter
+      APP_NAME: go-foundation
       APP_ENV: development
       GRPC_HOST: 0.0.0.0
       GRPC_PORT: 50051
       METRICS_ADDR: :9090
-      DATABASE_URL: postgres://grpc:grpc@postgres:5432/grpc_starter?sslmode=disable
+      DATABASE_URL: postgres://grpc:grpc@postgres:5432/go_foundation?sslmode=disable
       AUTH_LOCAL_ENABLED: "true"
-      JWT_ISSUER: grpc-clean-starter
+      JWT_ISSUER: go-foundation
       JWT_AUDIENCE: grpc-api
       JWT_ACCESS_TOKEN_TTL: 15m
       JWT_PRIVATE_KEY_FILE: /run/jwt/jwt_private.pem

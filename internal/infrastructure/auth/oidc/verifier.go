@@ -2,9 +2,10 @@ package oidc
 
 import (
 	"context"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
 	"fmt"
+
 	coreoidc "github.com/coreos/go-oidc/v3/oidc"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 )
 
 type Verifier struct{ verifier *coreoidc.IDTokenVerifier }
@@ -16,7 +17,7 @@ func New(ctx context.Context, issuer, clientID string) (*Verifier, error) {
 	}
 	return &Verifier{verifier: provider.Verifier(&coreoidc.Config{ClientID: clientID})}, nil
 }
-func (v *Verifier) Verify(ctx context.Context, raw string) (*domainauth.Identity, error) {
+func (v *Verifier) Verify(ctx context.Context, raw string) (*auth.Identity, error) {
 	t, err := v.verifier.Verify(ctx, raw)
 	if err != nil {
 		return nil, err
@@ -28,5 +29,5 @@ func (v *Verifier) Verify(ctx context.Context, raw string) (*domainauth.Identity
 	if err := t.Claims(&c); err != nil {
 		return nil, fmt.Errorf("parse oidc claims: %w", err)
 	}
-	return &domainauth.Identity{UserID: t.Subject, Username: c.Username, Email: c.Email, Provider: "oidc"}, nil
+	return &auth.Identity{UserID: t.Subject, Username: c.Username, Email: c.Email, Provider: "oidc"}, nil
 }

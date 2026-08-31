@@ -1,6 +1,6 @@
-# gRPC Clean Architecture Starter
+# go-foundation
 
-A production-oriented Go starter using gRPC, Protocol Buffers, Clean Architecture, PostgreSQL, local RBAC, local JWT authentication, optional OIDC/Keycloak authentication, Prometheus, OpenTelemetry, Jaeger, Docker Compose, migrations, pagination, health checks, graceful shutdown, structured logging, and tests.
+A production-oriented Go foundation using gRPC, Protocol Buffers, Clean Architecture, PostgreSQL, local RBAC, local JWT authentication, optional OIDC/Keycloak authentication, Prometheus, OpenTelemetry, Jaeger, Docker Compose, migrations, pagination, health checks, graceful shutdown, structured logging, and tests.
 
 ## Architecture
 
@@ -250,4 +250,3 @@ The server marks gRPC health `NOT_SERVING` before graceful shutdown.
 ## Suggested production extensions
 
 This starter intentionally gives you the core service platform. Depending on the application, typical next extensions are refresh-token/session rotation, a separate `user_identities` table for multi-provider account linking, Redis permission caching with invalidation, rate limiting, database integration tests via Testcontainers, TLS/mTLS, and generated API documentation.
-# go-foundation

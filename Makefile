@@ -1,4 +1,4 @@
-DATABASE_URL ?= postgres://grpc:grpc@localhost:5432/grpc_starter?sslmode=disable
+DATABASE_URL ?= postgres://grpc:grpc@localhost:5432/go_foundation?sslmode=disable
 
 .PHONY: tools proto fmt test run keys docker-up docker-down logs migrate-up migrate-down migrate-create tidy
 

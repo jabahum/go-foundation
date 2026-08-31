@@ -2,8 +2,8 @@ package interceptor
 
 import (
 	"context"
-	apprbac "example.com/grpc-clean-starter/internal/application/rbac"
-	"example.com/grpc-clean-starter/internal/security"
+	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
+	"github.com/jabahum/go-foundation/internal/security"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"

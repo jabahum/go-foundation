@@ -12,23 +12,23 @@ import (
 	"syscall"
 	"time"
 
-	authv1 "example.com/grpc-clean-starter/gen/proto/auth/v1"
-	rbacv1 "example.com/grpc-clean-starter/gen/proto/rbac/v1"
-	userv1 "example.com/grpc-clean-starter/gen/proto/user/v1"
-	appauth "example.com/grpc-clean-starter/internal/application/auth"
-	apprbac "example.com/grpc-clean-starter/internal/application/rbac"
-	appuser "example.com/grpc-clean-starter/internal/application/user"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
-	"example.com/grpc-clean-starter/internal/infrastructure/auth/local"
-	oidcauth "example.com/grpc-clean-starter/internal/infrastructure/auth/oidc"
-	"example.com/grpc-clean-starter/internal/infrastructure/bootstrap"
-	"example.com/grpc-clean-starter/internal/infrastructure/config"
-	"example.com/grpc-clean-starter/internal/infrastructure/database"
-	"example.com/grpc-clean-starter/internal/infrastructure/observability"
-	postgresrepo "example.com/grpc-clean-starter/internal/infrastructure/persistence/postgres"
-	transportgrpc "example.com/grpc-clean-starter/internal/transport/grpc"
-	"example.com/grpc-clean-starter/internal/transport/grpc/interceptor"
-	"example.com/grpc-clean-starter/internal/transport/grpc/policy"
+	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
+	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
+	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
+	appauth "github.com/jabahum/go-foundation/internal/application/auth"
+	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
+	appuser "github.com/jabahum/go-foundation/internal/application/user"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
+	"github.com/jabahum/go-foundation/internal/infrastructure/auth/local"
+	oidcauth "github.com/jabahum/go-foundation/internal/infrastructure/auth/oidc"
+	"github.com/jabahum/go-foundation/internal/infrastructure/bootstrap"
+	"github.com/jabahum/go-foundation/internal/infrastructure/config"
+	"github.com/jabahum/go-foundation/internal/infrastructure/database"
+	"github.com/jabahum/go-foundation/internal/infrastructure/observability"
+	postgresrepo "github.com/jabahum/go-foundation/internal/infrastructure/persistence/postgres"
+	transportgrpc "github.com/jabahum/go-foundation/internal/transport/grpc"
+	"github.com/jabahum/go-foundation/internal/transport/grpc/interceptor"
+	"github.com/jabahum/go-foundation/internal/transport/grpc/policy"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -68,7 +68,7 @@ func run(logger *slog.Logger) error {
 	rbacService := apprbac.NewService(rbacRepo)
 	userService := appuser.NewService(userRepo, hasher)
 
-	var verifiers []domainauth.TokenVerifier
+	var verifiers []auth.TokenVerifier
 	var localJWT *local.JWTProvider
 	if cfg.Auth.LocalEnabled {
 		localJWT, err = local.NewJWTProvider(cfg.Auth.PrivateKeyFile, cfg.Auth.PublicKeyFile, cfg.Auth.Issuer, cfg.Auth.Audience, cfg.Auth.TokenTTL)

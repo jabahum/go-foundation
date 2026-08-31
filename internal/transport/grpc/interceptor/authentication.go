@@ -2,8 +2,8 @@ package interceptor
 
 import (
 	"context"
-	appauth "example.com/grpc-clean-starter/internal/application/auth"
-	"example.com/grpc-clean-starter/internal/security"
+	appauth "github.com/jabahum/go-foundation/internal/application/auth"
+	"github.com/jabahum/go-foundation/internal/security"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/metadata"

@@ -3,9 +3,10 @@ package grpc
 import (
 	"context"
 	"errors"
-	userv1 "example.com/grpc-clean-starter/gen/proto/user/v1"
-	appuser "example.com/grpc-clean-starter/internal/application/user"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
+
+	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
+	appuser "github.com/jabahum/go-foundation/internal/application/user"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -42,16 +43,16 @@ func (h *UserHandler) ListUsers(ctx context.Context, r *userv1.ListUsersRequest)
 	}
 	return &userv1.ListUsersResponse{Users: out, NextPageToken: res.NextPageToken}, nil
 }
-func toProtoUser(u *domainuser.User) *userv1.User {
+func toProtoUser(u *user.User) *userv1.User {
 	return &userv1.User{Id: u.ID, Name: u.Name, Email: u.Email, Enabled: u.Enabled, CreatedAt: timestamppb.New(u.CreatedAt), UpdatedAt: timestamppb.New(u.UpdatedAt)}
 }
 func mapUserErr(err error) error {
 	switch {
-	case errors.Is(err, domainuser.ErrNotFound):
+	case errors.Is(err, user.ErrNotFound):
 		return status.Error(codes.NotFound, err.Error())
-	case errors.Is(err, domainuser.ErrEmailExists):
+	case errors.Is(err, user.ErrEmailExists):
 		return status.Error(codes.AlreadyExists, err.Error())
-	case errors.Is(err, domainuser.ErrInvalidUserID):
+	case errors.Is(err, user.ErrInvalidUserID):
 		return status.Error(codes.InvalidArgument, err.Error())
 	default:
 		return status.Error(codes.InvalidArgument, err.Error())

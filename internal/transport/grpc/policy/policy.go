@@ -1,6 +1,6 @@
 package policy
 
-import "example.com/grpc-clean-starter/internal/transport/grpc/interceptor"
+import "github.com/jabahum/go-foundation/internal/transport/grpc/interceptor"
 
 func Policies() interceptor.AuthorizationPolicy {
 	return interceptor.AuthorizationPolicy{

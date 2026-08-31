@@ -1,4 +1,4 @@
-module example.com/grpc-clean-starter
+module github.com/jabahum/go-foundation
 
 go 1.23
 

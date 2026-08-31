@@ -2,8 +2,9 @@ package grpc
 
 import (
 	"context"
-	rbacv1 "example.com/grpc-clean-starter/gen/proto/rbac/v1"
-	apprbac "example.com/grpc-clean-starter/internal/application/rbac"
+
+	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
+	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )

@@ -2,8 +2,8 @@ package database
 
 import (
 	"context"
-	"example.com/grpc-clean-starter/internal/infrastructure/config"
 	"fmt"
+	"github.com/jabahum/go-foundation/internal/infrastructure/config"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 

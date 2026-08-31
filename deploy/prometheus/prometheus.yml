@@ -1,6 +1,6 @@
 global:
   scrape_interval: 10s
 scrape_configs:
-  - job_name: grpc-clean-starter
+  - job_name: go-foundation
     static_configs:
       - targets: ["api:9090"]

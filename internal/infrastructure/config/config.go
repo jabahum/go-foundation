@@ -79,7 +79,7 @@ func Load() (*Config, error) {
 	if db == "" {
 		return nil, fmt.Errorf("DATABASE_URL is required")
 	}
-	issuer := strEnv("JWT_ISSUER", "grpc-clean-starter")
+	issuer := strEnv("JWT_ISSUER", "go-foundation")
 	aud := strEnv("JWT_AUDIENCE", "grpc-api")
 	priv := strEnv("JWT_PRIVATE_KEY_FILE", "./secrets/jwt_private.pem")
 	pub := strEnv("JWT_PUBLIC_KEY_FILE", "./secrets/jwt_public.pem")
@@ -90,7 +90,7 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("OIDC_ISSUER_URL is required when OIDC is enabled")
 	}
 	return &Config{
-		App:           AppConfig{Name: strEnv("APP_NAME", "grpc-clean-starter"), Environment: strEnv("APP_ENV", "development"), ShutdownTimeout: shutdown},
+		App:           AppConfig{Name: strEnv("APP_NAME", "go-foundation"), Environment: strEnv("APP_ENV", "development"), ShutdownTimeout: shutdown},
 		GRPC:          GRPCConfig{Host: strEnv("GRPC_HOST", "0.0.0.0"), Port: port, MetricsAddr: strEnv("METRICS_ADDR", ":9090")},
 		Database:      DatabaseConfig{URL: db, MaxConnections: int32(maxc), MinConnections: int32(minc)},
 		Auth:          AuthConfig{LocalEnabled: local, Issuer: issuer, Audience: aud, PrivateKeyFile: priv, PublicKeyFile: pub, TokenTTL: ttl},

@@ -5,17 +5,18 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
 	"fmt"
-	"github.com/google/uuid"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 type Service struct {
-	repo   domainuser.Repository
-	hasher domainauth.PasswordHasher
+	repo   user.Repository
+	hasher auth.PasswordHasher
 }
 type CreateInput struct{ Name, Email, Password string }
 type ListInput struct {
@@ -23,7 +24,7 @@ type ListInput struct {
 	PageToken, Search string
 }
 type ListResult struct {
-	Users         []*domainuser.User
+	Users         []*user.User
 	NextPageToken string
 }
 type cursor struct {
@@ -31,17 +32,17 @@ type cursor struct {
 	ID        string    `json:"id"`
 }
 
-func NewService(r domainuser.Repository, h domainauth.PasswordHasher) *Service {
+func NewService(r user.Repository, h auth.PasswordHasher) *Service {
 	return &Service{repo: r, hasher: h}
 }
-func (s *Service) Create(ctx context.Context, in CreateInput) (*domainuser.User, error) {
+func (s *Service) Create(ctx context.Context, in CreateInput) (*user.User, error) {
 	if strings.TrimSpace(in.Password) == "" {
 		return nil, fmt.Errorf("password is required")
 	}
 	if len(in.Password) < 8 {
 		return nil, fmt.Errorf("password must be at least 8 characters")
 	}
-	u, err := domainuser.New(uuid.NewString(), in.Name, in.Email)
+	u, err := user.New(uuid.NewString(), in.Name, in.Email)
 	if err != nil {
 		return nil, err
 	}
@@ -55,9 +56,9 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (*domainuser.User,
 	}
 	return u, nil
 }
-func (s *Service) Get(ctx context.Context, id string) (*domainuser.User, error) {
+func (s *Service) Get(ctx context.Context, id string) (*user.User, error) {
 	if _, err := uuid.Parse(id); err != nil {
-		return nil, domainuser.ErrInvalidUserID
+		return nil, user.ErrInvalidUserID
 	}
 	return s.repo.GetByID(ctx, id)
 }
@@ -69,7 +70,7 @@ func (s *Service) List(ctx context.Context, in ListInput) (*ListResult, error) {
 	if limit > 100 {
 		limit = 100
 	}
-	f := domainuser.ListFilter{Limit: limit + 1, Search: strings.TrimSpace(in.Search)}
+	f := user.ListFilter{Limit: limit + 1, Search: strings.TrimSpace(in.Search)}
 	if in.PageToken != "" {
 		c, err := decodeCursor(in.PageToken)
 		if err != nil {

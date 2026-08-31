@@ -3,11 +3,12 @@ package user_test
 import (
 	"context"
 	"errors"
-	appuser "example.com/grpc-clean-starter/internal/application/user"
-	domainuser "example.com/grpc-clean-starter/internal/domain/user"
-	"example.com/grpc-clean-starter/internal/infrastructure/auth/local"
-	"example.com/grpc-clean-starter/internal/infrastructure/persistence/memory"
 	"testing"
+
+	appuser "github.com/jabahum/go-foundation/internal/application/user"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
+	"github.com/jabahum/go-foundation/internal/infrastructure/auth/local"
+	"github.com/jabahum/go-foundation/internal/infrastructure/persistence/memory"
 )
 
 func TestCreateUser(t *testing.T) {
@@ -28,7 +29,7 @@ func TestDuplicateUser(t *testing.T) {
 		t.Fatal(err)
 	}
 	_, err := s.Create(context.Background(), in)
-	if !errors.Is(err, domainuser.ErrEmailExists) {
+	if !errors.Is(err, user.ErrEmailExists) {
 		t.Fatalf("expected ErrEmailExists, got %v", err)
 	}
 }

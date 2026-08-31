@@ -2,15 +2,16 @@ package bootstrap
 
 import (
 	"context"
-	domainauth "example.com/grpc-clean-starter/internal/domain/auth"
 	"fmt"
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	auth "github.com/jabahum/go-foundation/internal/domain/auth"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func EnsureAdmin(ctx context.Context, db *pgxpool.Pool, hasher domainauth.PasswordHasher, email, password, name string) error {
+func EnsureAdmin(ctx context.Context, db *pgxpool.Pool, hasher auth.PasswordHasher, email, password, name string) error {
 	email = strings.ToLower(strings.TrimSpace(email))
 	if email == "" || password == "" {
 		return nil
