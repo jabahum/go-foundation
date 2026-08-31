@@ -2,13 +2,27 @@ syntax = "proto3";
 package rbac.v1;
 option go_package = "github.com/jabahum/go-foundation/gen/proto/rbac/v1;rbacv1";
 
+import "google/api/annotations.proto";
+
 service RBACService {
-  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse);
-  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse);
-  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse);
-  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse);
-  rpc AssignPermissionToRole(AssignPermissionToRoleRequest) returns (AssignPermissionToRoleResponse);
-  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest) returns (RemovePermissionFromRoleResponse);
+  rpc ListRoles(ListRolesRequest) returns (ListRolesResponse) {
+    option (google.api.http) = {get: "/v1/roles"};
+  }
+  rpc ListPermissions(ListPermissionsRequest) returns (ListPermissionsResponse) {
+    option (google.api.http) = {get: "/v1/permissions"};
+  }
+  rpc AssignRole(AssignRoleRequest) returns (AssignRoleResponse) {
+    option (google.api.http) = {post: "/v1/users/{user_id}/roles/{role_id}"};
+  }
+  rpc RemoveRole(RemoveRoleRequest) returns (RemoveRoleResponse) {
+    option (google.api.http) = {delete: "/v1/users/{user_id}/roles/{role_id}"};
+  }
+  rpc AssignPermissionToRole(AssignPermissionToRoleRequest) returns (AssignPermissionToRoleResponse) {
+    option (google.api.http) = {post: "/v1/roles/{role_id}/permissions/{permission_id}"};
+  }
+  rpc RemovePermissionFromRole(RemovePermissionFromRoleRequest) returns (RemovePermissionFromRoleResponse) {
+    option (google.api.http) = {delete: "/v1/roles/{role_id}/permissions/{permission_id}"};
+  }
 }
 message Role { string id=1; string name=2; string description=3; }
 message Permission { string id=1; string name=2; string resource=3; string action=4; string description=5; }
