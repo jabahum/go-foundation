@@ -8,7 +8,7 @@ import (
 	"github.com/google/uuid"
 	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
 	userv1 "github.com/jabahum/go-foundation/gen/proto/user/v1"
-	domainaudit "github.com/jabahum/go-foundation/internal/domain/audit"
+	audit "github.com/jabahum/go-foundation/internal/domain/audit"
 	"github.com/jabahum/go-foundation/internal/security"
 	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc"
@@ -23,7 +23,7 @@ const auditWriteTimeout = 2 * time.Second
 // It only extracts explicitly allow-listed identifiers and never serializes a
 // complete request, preventing credentials and other sensitive fields from
 // entering the audit trail.
-func AuditUnary(repo domainaudit.Repository, logger *slog.Logger) grpc.UnaryServerInterceptor {
+func AuditUnary(repo audit.Repository, logger *slog.Logger) grpc.UnaryServerInterceptor {
 	return func(ctx context.Context, req any, info *grpc.UnaryServerInfo, handler grpc.UnaryHandler) (any, error) {
 		response, handlerErr := handler(ctx, req)
 		event, ok := mutationEvent(info.FullMethod, req, response)
@@ -58,10 +58,10 @@ func AuditUnary(repo domainaudit.Repository, logger *slog.Logger) grpc.UnaryServ
 	}
 }
 
-func mutationEvent(method string, req, response any) (*domainaudit.Event, bool) {
+func mutationEvent(method string, req, response any) (*audit.Event, bool) {
 	switch method {
 	case "/user.v1.UserService/CreateUser":
-		event := &domainaudit.Event{Action: "user.create", ResourceType: "user", Metadata: map[string]string{}}
+		event := &audit.Event{Action: "user.create", ResourceType: "user", Metadata: map[string]string{}}
 		if value, ok := response.(*userv1.CreateUserResponse); ok && value.GetUser() != nil {
 			event.ResourceID = value.GetUser().GetId()
 		}
@@ -83,8 +83,8 @@ func mutationEvent(method string, req, response any) (*domainaudit.Event, bool) 
 	}
 }
 
-func relationshipEvent(action, resourceType, resourceID, relatedKey, relatedID string) *domainaudit.Event {
-	return &domainaudit.Event{
+func relationshipEvent(action, resourceType, resourceID, relatedKey, relatedID string) *audit.Event {
+	return &audit.Event{
 		Action:       action,
 		ResourceType: resourceType,
 		ResourceID:   resourceID,

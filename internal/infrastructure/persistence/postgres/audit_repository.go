@@ -5,17 +5,17 @@ import (
 	"encoding/json"
 	"fmt"
 
-	domainaudit "github.com/jabahum/go-foundation/internal/domain/audit"
+	audit "github.com/jabahum/go-foundation/internal/domain/audit"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type AuditRepository struct{ db *pgxpool.Pool }
 
-var _ domainaudit.Repository = (*AuditRepository)(nil)
+var _ audit.Repository = (*AuditRepository)(nil)
 
 func NewAuditRepository(db *pgxpool.Pool) *AuditRepository { return &AuditRepository{db: db} }
 
-func (r *AuditRepository) Record(ctx context.Context, event *domainaudit.Event) error {
+func (r *AuditRepository) Record(ctx context.Context, event *audit.Event) error {
 	metadataValue := event.Metadata
 	if metadataValue == nil {
 		metadataValue = map[string]string{}
@@ -38,7 +38,7 @@ func (r *AuditRepository) Record(ctx context.Context, event *domainaudit.Event) 
 	return nil
 }
 
-func (r *AuditRepository) List(ctx context.Context, filter domainaudit.ListFilter) ([]*domainaudit.Event, error) {
+func (r *AuditRepository) List(ctx context.Context, filter audit.ListFilter) ([]*audit.Event, error) {
 	rows, err := r.db.Query(ctx, `
 		SELECT id::text, occurred_at, COALESCE(actor_id::text,''), action, resource_type,
 			COALESCE(resource_id,''), request_id, rpc_method, grpc_code, COALESCE(error_reason,''),
@@ -59,9 +59,9 @@ func (r *AuditRepository) List(ctx context.Context, filter domainaudit.ListFilte
 	}
 	defer rows.Close()
 
-	events := make([]*domainaudit.Event, 0)
+	events := make([]*audit.Event, 0)
 	for rows.Next() {
-		event := &domainaudit.Event{}
+		event := &audit.Event{}
 		var metadata []byte
 		if err := rows.Scan(
 			&event.ID, &event.OccurredAt, &event.ActorID, &event.Action, &event.ResourceType,

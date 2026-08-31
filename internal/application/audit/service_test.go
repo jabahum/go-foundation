@@ -7,23 +7,23 @@ import (
 	"time"
 
 	appaudit "github.com/jabahum/go-foundation/internal/application/audit"
-	domainaudit "github.com/jabahum/go-foundation/internal/domain/audit"
+	audit "github.com/jabahum/go-foundation/internal/domain/audit"
 )
 
 type repository struct {
-	events     []*domainaudit.Event
-	lastFilter domainaudit.ListFilter
+	events     []*audit.Event
+	lastFilter audit.ListFilter
 }
 
-func (r *repository) Record(context.Context, *domainaudit.Event) error { return nil }
-func (r *repository) List(_ context.Context, filter domainaudit.ListFilter) ([]*domainaudit.Event, error) {
+func (r *repository) Record(context.Context, *audit.Event) error { return nil }
+func (r *repository) List(_ context.Context, filter audit.ListFilter) ([]*audit.Event, error) {
 	r.lastFilter = filter
 	return r.events, nil
 }
 
 func TestListUsesCursorPagination(t *testing.T) {
 	now := time.Now().UTC()
-	repo := &repository{events: []*domainaudit.Event{
+	repo := &repository{events: []*audit.Event{
 		{ID: "1", OccurredAt: now},
 		{ID: "2", OccurredAt: now.Add(-time.Second)},
 		{ID: "3", OccurredAt: now.Add(-2 * time.Second)},

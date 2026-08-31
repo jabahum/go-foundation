@@ -8,12 +8,12 @@ import (
 	"strings"
 	"time"
 
-	domainaudit "github.com/jabahum/go-foundation/internal/domain/audit"
+	audit "github.com/jabahum/go-foundation/internal/domain/audit"
 )
 
 var ErrInvalidPageToken = errors.New("invalid page token")
 
-type Service struct{ repo domainaudit.Repository }
+type Service struct{ repo audit.Repository }
 
 type ListInput struct {
 	PageSize                 int
@@ -23,7 +23,7 @@ type ListInput struct {
 }
 
 type ListResult struct {
-	Events        []*domainaudit.Event
+	Events        []*audit.Event
 	NextPageToken string
 }
 
@@ -32,7 +32,7 @@ type cursor struct {
 	ID         string    `json:"id"`
 }
 
-func NewService(repo domainaudit.Repository) *Service { return &Service{repo: repo} }
+func NewService(repo audit.Repository) *Service { return &Service{repo: repo} }
 
 func (s *Service) List(ctx context.Context, in ListInput) (*ListResult, error) {
 	limit := in.PageSize
@@ -42,7 +42,7 @@ func (s *Service) List(ctx context.Context, in ListInput) (*ListResult, error) {
 	if limit > 100 {
 		limit = 100
 	}
-	filter := domainaudit.ListFilter{
+	filter := audit.ListFilter{
 		Limit:        limit + 1,
 		ActorID:      strings.TrimSpace(in.ActorID),
 		Action:       strings.TrimSpace(in.Action),

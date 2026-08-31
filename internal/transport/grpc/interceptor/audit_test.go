@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	rbacv1 "github.com/jabahum/go-foundation/gen/proto/rbac/v1"
-	domainaudit "github.com/jabahum/go-foundation/internal/domain/audit"
+	audit "github.com/jabahum/go-foundation/internal/domain/audit"
 	auth "github.com/jabahum/go-foundation/internal/domain/auth"
 	"github.com/jabahum/go-foundation/internal/security"
 	"github.com/jabahum/go-foundation/internal/transport/grpc/apierror"
@@ -17,16 +17,16 @@ import (
 )
 
 type auditRecorder struct {
-	events []*domainaudit.Event
+	events []*audit.Event
 	err    error
 }
 
-func (r *auditRecorder) Record(_ context.Context, event *domainaudit.Event) error {
+func (r *auditRecorder) Record(_ context.Context, event *audit.Event) error {
 	r.events = append(r.events, event)
 	return r.err
 }
 
-func (r *auditRecorder) List(context.Context, domainaudit.ListFilter) ([]*domainaudit.Event, error) {
+func (r *auditRecorder) List(context.Context, audit.ListFilter) ([]*audit.Event, error) {
 	return nil, nil
 }
 
