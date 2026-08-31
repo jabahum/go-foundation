@@ -3,24 +3,25 @@ package auth
 import (
 	"context"
 	"errors"
-	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
-	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
 	"strings"
+
+	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 var ErrInvalidCredentials = errors.New("invalid credentials")
 
 type Service struct {
-	users  domainuser.Repository
+	users  user.Repository
 	hasher domainauth.PasswordHasher
 	issuer domainauth.TokenIssuer
 }
 type LoginResult struct {
-	User  *domainuser.User
+	User  *user.User
 	Token *domainauth.Token
 }
 
-func NewService(u domainuser.Repository, h domainauth.PasswordHasher, i domainauth.TokenIssuer) *Service {
+func NewService(u user.Repository, h domainauth.PasswordHasher, i domainauth.TokenIssuer) *Service {
 	return &Service{users: u, hasher: h, issuer: i}
 }
 func (s *Service) Login(ctx context.Context, email, password string) (*LoginResult, error) {
@@ -29,7 +30,7 @@ func (s *Service) Login(ctx context.Context, email, password string) (*LoginResu
 		return nil, ErrInvalidCredentials
 	}
 	if !u.Enabled {
-		return nil, domainuser.ErrDisabled
+		return nil, user.ErrDisabled
 	}
 	if u.AuthProvider != "local" || u.PasswordHash == "" {
 		return nil, ErrInvalidCredentials

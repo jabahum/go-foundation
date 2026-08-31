@@ -3,10 +3,11 @@ package grpc
 import (
 	"context"
 	"errors"
+
 	authv1 "github.com/jabahum/go-foundation/gen/proto/auth/v1"
 	appauth "github.com/jabahum/go-foundation/internal/application/auth"
 	apprbac "github.com/jabahum/go-foundation/internal/application/rbac"
-	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
 	"github.com/jabahum/go-foundation/internal/security"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -15,11 +16,11 @@ import (
 type AuthHandler struct {
 	authv1.UnimplementedAuthServiceServer
 	auth  *appauth.Service
-	users domainuser.Repository
+	users user.Repository
 	rbac  *apprbac.Service
 }
 
-func NewAuthHandler(a *appauth.Service, u domainuser.Repository, r *apprbac.Service) *AuthHandler {
+func NewAuthHandler(a *appauth.Service, u user.Repository, r *apprbac.Service) *AuthHandler {
 	return &AuthHandler{auth: a, users: u, rbac: r}
 }
 func (h *AuthHandler) Login(ctx context.Context, r *authv1.LoginRequest) (*authv1.LoginResponse, error) {
@@ -31,7 +32,7 @@ func (h *AuthHandler) Login(ctx context.Context, r *authv1.LoginRequest) (*authv
 		if errors.Is(err, appauth.ErrInvalidCredentials) {
 			return nil, status.Error(codes.Unauthenticated, "invalid credentials")
 		}
-		if errors.Is(err, domainuser.ErrDisabled) {
+		if errors.Is(err, user.ErrDisabled) {
 			return nil, status.Error(codes.PermissionDenied, "user disabled")
 		}
 		return nil, status.Error(codes.Internal, "login failed")

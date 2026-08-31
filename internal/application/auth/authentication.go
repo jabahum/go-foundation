@@ -3,18 +3,19 @@ package auth
 import (
 	"context"
 	"errors"
+
 	domainauth "github.com/jabahum/go-foundation/internal/domain/auth"
-	domainuser "github.com/jabahum/go-foundation/internal/domain/user"
+	user "github.com/jabahum/go-foundation/internal/domain/user"
 )
 
 var ErrInvalidToken = errors.New("invalid access token")
 
 type AuthenticationService struct {
 	verifiers []domainauth.TokenVerifier
-	users     domainuser.Repository
+	users     user.Repository
 }
 
-func NewAuthenticationService(users domainuser.Repository, v ...domainauth.TokenVerifier) *AuthenticationService {
+func NewAuthenticationService(users user.Repository, v ...domainauth.TokenVerifier) *AuthenticationService {
 	return &AuthenticationService{users: users, verifiers: v}
 }
 func (s *AuthenticationService) Authenticate(ctx context.Context, raw string) (*domainauth.Identity, error) {
