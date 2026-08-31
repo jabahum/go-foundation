@@ -1,0 +1,11 @@
+Swagger UI 5.32.0
+https://github.com/swagger-api/swagger-ui/releases/tag/v5.32.0
+
+The embedded Swagger UI files are distributed under the Apache License 2.0 in
+LICENSE. They were obtained from the pinned swagger-ui-dist@5.32.0 package.
+
+SHA-256:
+d9bbb469128e88a974c78e76457c3910babb4649447d901af19a60335a09ee1e  swagger-ui-bundle.js
+b024df29b02b4943bf95cb835fce9d19d4559c14e374b0dd36a89b27a223a2da  swagger-ui.css
+2e60d99087003f3d8ca9e368f848cd30607eb0a695922959e55d0bec32dcf496  swagger-ui.css.map
+36d79f6c047e37b972f87e93ea4c9078c55dfdc9de1ce2ebf3c668976480699c  swagger-ui-bundle.js.LICENSE.txt

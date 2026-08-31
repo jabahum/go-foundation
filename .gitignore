@@ -2,7 +2,8 @@
 bin/
 gen/proto/
 gen/openapiv2/
+/internal/transport/http/docs/go-foundation.swagger.json
 secrets/*.pem
 .DS_Store
 coverage.out
-.vscode/settings.json
+.vscode/*

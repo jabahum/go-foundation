@@ -13,8 +13,9 @@ plugins:
     opt:
       - paths=source_relative
   - local: protoc-gen-openapiv2
-    out: gen/openapiv2
+    out: internal/transport/http/docs
     strategy: all
     opt:
       - allow_merge=true
       - merge_file_name=go-foundation
+      - openapi_configuration=api/openapi.yaml

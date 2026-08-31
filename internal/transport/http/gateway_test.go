@@ -49,7 +49,7 @@ func TestGatewayTranscodesHTTPToGRPC(t *testing.T) {
 			return listener.Dial()
 		}),
 	}
-	gateway, err := newGateway(ctx, "127.0.0.1:0", "passthrough:///gateway-test", dialOptions)
+	gateway, err := newGateway(ctx, "127.0.0.1:0", "passthrough:///gateway-test", true, dialOptions)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -71,5 +71,54 @@ func TestGatewayTranscodesHTTPToGRPC(t *testing.T) {
 	}
 	if body.AccessToken != "gateway-token" {
 		t.Fatalf("accessToken = %q", body.AccessToken)
+	}
+}
+
+func TestEmbeddedDocumentation(t *testing.T) {
+	handler, err := withDocumentation(http.NotFoundHandler(), true)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	t.Run("redirect", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/docs", nil))
+		if response.Code != http.StatusPermanentRedirect || response.Header().Get("Location") != "/docs/" {
+			t.Fatalf("status = %d, location = %q", response.Code, response.Header().Get("Location"))
+		}
+	})
+
+	t.Run("UI", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/docs/", nil))
+		if response.Code != http.StatusOK {
+			t.Fatalf("status = %d", response.Code)
+		}
+		if body := response.Body.String(); !strings.Contains(body, "SwaggerUIBundle") || strings.Contains(body, "https://") {
+			t.Fatal("documentation UI is missing its local Swagger bundle or contains a remote asset")
+		}
+	})
+
+	t.Run("OpenAPI", func(t *testing.T) {
+		response := httptest.NewRecorder()
+		handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/openapi.json", nil))
+		if response.Code != http.StatusOK {
+			t.Fatalf("status = %d", response.Code)
+		}
+		if body := response.Body.String(); !strings.Contains(body, `"title": "go-foundation API"`) || !strings.Contains(body, `"BearerAuth"`) {
+			t.Fatal("OpenAPI document is missing API metadata or bearer authentication")
+		}
+	})
+}
+
+func TestDocumentationCanBeDisabled(t *testing.T) {
+	handler, err := withDocumentation(http.NotFoundHandler(), false)
+	if err != nil {
+		t.Fatal(err)
+	}
+	response := httptest.NewRecorder()
+	handler.ServeHTTP(response, httptest.NewRequest(http.MethodGet, "/docs/", nil))
+	if response.Code != http.StatusNotFound {
+		t.Fatalf("status = %d", response.Code)
 	}
 }
