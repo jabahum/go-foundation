@@ -1,15 +1,25 @@
 {
   "cSpell.words": [
+    "appauth",
+    "apprbac",
+    "appuser",
     "authv",
     "bufbuild",
     "fullstorydev",
     "gofmt",
     "grpcurl",
     "healthcheck",
+    "healthpb",
+    "httptransport",
     "isready",
+    "jabahum",
     "jaegertracing",
+    "oidcauth",
     "otelcol",
     "postgresrepo",
-    "sslmode"
+    "rbacv",
+    "sslmode",
+    "transportgrpc",
+    "userv"
   ]
 }

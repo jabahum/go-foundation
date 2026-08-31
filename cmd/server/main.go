@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"strconv"
 	"syscall"
 	"time"
 
@@ -29,6 +30,7 @@ import (
 	transportgrpc "github.com/jabahum/go-foundation/internal/transport/grpc"
 	"github.com/jabahum/go-foundation/internal/transport/grpc/interceptor"
 	"github.com/jabahum/go-foundation/internal/transport/grpc/policy"
+	httptransport "github.com/jabahum/go-foundation/internal/transport/http"
 
 	"go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc"
 	"google.golang.org/grpc"
@@ -148,26 +150,55 @@ func run(logger *slog.Logger) error {
 	if err != nil {
 		return err
 	}
-	serverErr := make(chan error, 1)
+
+	gatewayCtx, cancelGateway := context.WithCancel(ctx)
+	defer cancelGateway()
+	httpAddress := fmt.Sprintf("%s:%d", cfg.HTTP.Host, cfg.HTTP.Port)
+	grpcEndpoint := gatewayEndpoint(cfg.GRPC.Host, cfg.GRPC.Port)
+	gatewayServer, err := httptransport.NewGateway(gatewayCtx, httpAddress, grpcEndpoint)
+	if err != nil {
+		return fmt.Errorf("create HTTP gateway: %w", err)
+	}
+
+	serverErr := make(chan error, 2)
 	go func() {
 		logger.Info("grpc server started", "address", address, "metrics", cfg.GRPC.MetricsAddr)
-		serverErr <- grpcServer.Serve(listener)
+		if err := grpcServer.Serve(listener); err != nil {
+			serverErr <- fmt.Errorf("serve gRPC: %w", err)
+		}
+	}()
+	go func() {
+		logger.Info("HTTP gateway started", "address", httpAddress, "grpc_endpoint", grpcEndpoint)
+		if err := gatewayServer.ListenAndServe(); err != nil && !errors.Is(err, http.ErrServerClosed) {
+			serverErr <- fmt.Errorf("serve HTTP gateway: %w", err)
+		}
 	}()
 
 	sigCh := make(chan os.Signal, 1)
 	signal.Notify(sigCh, syscall.SIGTERM, syscall.SIGINT)
+	var serveErr error
 	select {
 	case err := <-serverErr:
-		if err != nil {
-			return err
-		}
+		serveErr = err
 	case sig := <-sigCh:
 		logger.Info("shutdown signal received", "signal", sig.String())
 	}
 
 	healthServer.SetServingStatus("", healthpb.HealthCheckResponse_NOT_SERVING)
+	shutdownHTTP(gatewayServer, cfg.App.ShutdownTimeout)
+	cancelGateway()
 	gracefulStop(grpcServer, cfg.App.ShutdownTimeout)
-	return nil
+	return serveErr
+}
+
+func gatewayEndpoint(host string, port int) string {
+	if ip := net.ParseIP(host); ip != nil && ip.IsUnspecified() {
+		host = "127.0.0.1"
+	}
+	if host == "" {
+		host = "127.0.0.1"
+	}
+	return net.JoinHostPort(host, strconv.Itoa(port))
 }
 
 func gracefulStop(s *grpc.Server, timeout time.Duration) {

@@ -6,7 +6,7 @@ A production-oriented Go foundation using gRPC, Protocol Buffers, Clean Architec
 
 ```text
 Client
-  -> gRPC / Protobuf
+  -> gRPC / Protobuf or HTTP / JSON gateway
   -> request ID
   -> authentication (local JWT or optional OIDC)
   -> local RBAC permission lookup
@@ -45,6 +45,7 @@ make logs
 Services:
 
 - gRPC: `localhost:50051`
+- HTTP/JSON gateway: `localhost:8080`
 - application metrics: `localhost:9090/metrics`
 - Prometheus: `localhost:9091`
 - Jaeger: `localhost:16686`
@@ -71,6 +72,14 @@ Copy the returned token:
 
 ```bash
 export ACCESS_TOKEN='...'
+```
+
+The same API is available over HTTP/JSON:
+
+```bash
+curl -X POST http://localhost:8080/v1/auth/login \
+  -H 'Content-Type: application/json' \
+  -d '{"email":"admin@example.com","password":"ChangeMe123!"}'
 ```
 
 Inspect the current identity and effective RBAC:
@@ -187,7 +196,14 @@ api/proto/user/v1
 api/proto/rbac/v1
 ```
 
-Generated Go code goes under `gen/proto` and is ignored by Git.
+Generated Go and gRPC-Gateway code goes under `gen/proto`. The generated OpenAPI document goes under `gen/openapiv2`. Both directories are ignored by Git.
+
+HTTP routes are declared with `google.api.http` annotations in the protobuf service definitions. Requests sent to the gateway on port `8080` pass through the existing gRPC authentication and authorization interceptors. For example:
+
+```bash
+curl http://localhost:8080/v1/users \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}"
+```
 
 ## Database migrations
 

@@ -4,9 +4,18 @@ package auth.v1;
 
 option go_package = "github.com/jabahum/go-foundation/gen/proto/auth/v1;authv1";
 
+import "google/api/annotations.proto";
+
 service AuthService {
-  rpc Login(LoginRequest) returns (LoginResponse);
-  rpc Me(MeRequest) returns (MeResponse);
+  rpc Login(LoginRequest) returns (LoginResponse) {
+    option (google.api.http) = {
+      post: "/v1/auth/login"
+      body: "*"
+    };
+  }
+  rpc Me(MeRequest) returns (MeResponse) {
+    option (google.api.http) = {get: "/v1/auth/me"};
+  }
 }
 
 message LoginRequest {
