@@ -316,6 +316,23 @@ make test
 
 Unit tests use the in-memory repository where appropriate. PostgreSQL integration tests can be added under `tests/integration` without changing application code.
 
+## Contract-quality CI
+
+The GitHub Actions workflow treats generated protobuf, gRPC-Gateway, and OpenAPI outputs as tracked release artifacts. Every push and pull request runs protobuf linting, checks `FILE`-level compatibility against the target branch, regenerates contracts, and fails if generation or `go mod tidy` changes the working tree. It then validates the generated OpenAPI document, runs race-enabled tests and `go vet`, and builds the production Docker image.
+
+Run the main contract checks locally with:
+
+```bash
+buf lint
+buf breaking --against '.git#branch=origin/main'
+buf generate
+go mod tidy
+git diff --exit-code
+go test -race ./...
+go vet ./...
+docker build -t go-foundation:ci .
+```
+
 ## Foundry
 
 The versioned foundation archive is available through this repository's Foundry registry:

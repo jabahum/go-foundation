@@ -1,28 +1,81 @@
 name: ci
+
 on:
   push:
   pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  quality:
     runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - name: Check out repository
+        uses: actions/checkout@v4
         with:
-          go-version: '1.23.x'
-      - name: Install Buf
-        run: go install github.com/bufbuild/buf/cmd/buf@v1.47.2
-      - name: Install protobuf generators
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+          cache: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.12.0
+
+      - name: Install protobuf tools
         run: |
+          go install github.com/bufbuild/buf/cmd/buf@v1.47.2
           go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.1
           go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-grpc-gateway@v2.23.0
           go install github.com/grpc-ecosystem/grpc-gateway/v2/protoc-gen-openapiv2@v2.23.0
+
       - name: Lint protobuf
         run: buf lint
+
+      - name: Check protobuf compatibility
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
+        run: |
+          if [ "${EVENT_NAME}" = "pull_request" ]; then
+            buf breaking --against ".git#branch=origin/${BASE_REF}"
+          elif [ -n "${BEFORE_SHA}" ] && [ "${BEFORE_SHA}" != "0000000000000000000000000000000000000000" ]; then
+            buf breaking --against ".git#ref=${BEFORE_SHA}"
+          else
+            buf breaking --against ".git#branch=origin/main"
+          fi
+
       - name: Generate protobuf
         run: buf generate
+
       - name: Resolve modules
         run: go mod tidy
-      - name: Test
+
+      - name: Verify generated files are current
+        run: |
+          git diff --exit-code
+          test -z "$(git status --porcelain)"
+
+      - name: Validate generated OpenAPI
+        run: npx --yes @redocly/cli@2.49.0 lint internal/transport/http/docs/go-foundation.swagger.json --extends=minimal
+
+      - name: Run race tests
         run: go test -race ./...
+
+      - name: Run vet
+        run: go vet ./...
+
+      - name: Build Docker image
+        run: docker build --tag go-foundation:ci .
