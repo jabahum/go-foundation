@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/grpc-ecosystem/grpc-gateway/v2/runtime"
@@ -23,7 +24,10 @@ func NewGateway(ctx context.Context, address, grpcEndpoint string, docsEnabled b
 }
 
 func newGateway(ctx context.Context, address, grpcEndpoint string, docsEnabled bool, dialOptions []grpc.DialOption) (*http.Server, error) {
-	mux := runtime.NewServeMux()
+	mux := runtime.NewServeMux(
+		runtime.WithIncomingHeaderMatcher(gatewayIncomingHeaderMatcher),
+		runtime.WithOutgoingHeaderMatcher(gatewayOutgoingHeaderMatcher),
+	)
 	if err := auditv1.RegisterAuditServiceHandlerFromEndpoint(ctx, mux, grpcEndpoint, dialOptions); err != nil {
 		return nil, fmt.Errorf("register audit gateway: %w", err)
 	}
@@ -46,4 +50,18 @@ func newGateway(ctx context.Context, address, grpcEndpoint string, docsEnabled b
 		Handler:           handler,
 		ReadHeaderTimeout: 5 * time.Second,
 	}, nil
+}
+
+func gatewayIncomingHeaderMatcher(key string) (string, bool) {
+	if strings.EqualFold(key, "Idempotency-Key") {
+		return "idempotency-key", true
+	}
+	return runtime.DefaultHeaderMatcher(key)
+}
+
+func gatewayOutgoingHeaderMatcher(key string) (string, bool) {
+	if strings.EqualFold(key, "idempotency-replayed") {
+		return "Idempotency-Replayed", true
+	}
+	return runtime.DefaultHeaderMatcher(key)
 }

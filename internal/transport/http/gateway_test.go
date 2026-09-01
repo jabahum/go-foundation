@@ -130,6 +130,17 @@ func TestEmbeddedDocumentation(t *testing.T) {
 	})
 }
 
+func TestGatewayForwardsIdempotencyHeaders(t *testing.T) {
+	metadataKey, ok := gatewayIncomingHeaderMatcher("Idempotency-Key")
+	if !ok || metadataKey != "idempotency-key" {
+		t.Fatalf("incoming header = %q, %v", metadataKey, ok)
+	}
+	header, ok := gatewayOutgoingHeaderMatcher("idempotency-replayed")
+	if !ok || header != "Idempotency-Replayed" {
+		t.Fatalf("outgoing header = %q, %v", header, ok)
+	}
+}
+
 func TestDocumentationCanBeDisabled(t *testing.T) {
 	handler, err := withDocumentation(http.NotFoundHandler(), false)
 	if err != nil {
