@@ -14,6 +14,7 @@ type Config struct {
 	Database      DatabaseConfig
 	Auth          AuthConfig
 	OIDC          OIDCConfig
+	Idempotency   IdempotencyConfig
 	Observability ObservabilityConfig
 }
 type AppConfig struct {
@@ -42,6 +43,11 @@ type AuthConfig struct {
 type OIDCConfig struct {
 	Enabled             bool
 	IssuerURL, ClientID string
+}
+type IdempotencyConfig struct {
+	Enabled     bool
+	TTL         time.Duration
+	LockTimeout time.Duration
 }
 type ObservabilityConfig struct {
 	OTelEnabled  bool
@@ -95,6 +101,24 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	idempotencyEnabled, err := boolEnv("IDEMPOTENCY_ENABLED", true)
+	if err != nil {
+		return nil, err
+	}
+	idempotencyTTL, err := durationEnv("IDEMPOTENCY_TTL", 24*time.Hour)
+	if err != nil {
+		return nil, err
+	}
+	if idempotencyTTL <= 0 {
+		return nil, fmt.Errorf("IDEMPOTENCY_TTL must be positive")
+	}
+	idempotencyLockTimeout, err := durationEnv("IDEMPOTENCY_LOCK_TIMEOUT", 30*time.Second)
+	if err != nil {
+		return nil, err
+	}
+	if idempotencyLockTimeout <= 0 || idempotencyLockTimeout >= idempotencyTTL {
+		return nil, fmt.Errorf("IDEMPOTENCY_LOCK_TIMEOUT must be positive and shorter than IDEMPOTENCY_TTL")
+	}
 	otelEnabled, err := boolEnv("OTEL_ENABLED", false)
 	if err != nil {
 		return nil, err
@@ -120,6 +144,7 @@ func Load() (*Config, error) {
 		Database:      DatabaseConfig{URL: db, MaxConnections: int32(maxc), MinConnections: int32(minc)},
 		Auth:          AuthConfig{LocalEnabled: local, Issuer: issuer, Audience: aud, PrivateKeyFile: priv, PublicKeyFile: pub, TokenTTL: ttl, RefreshTokenTTL: refreshTTL},
 		OIDC:          OIDCConfig{Enabled: oidcEnabled, IssuerURL: os.Getenv("OIDC_ISSUER_URL"), ClientID: os.Getenv("OIDC_CLIENT_ID")},
+		Idempotency:   IdempotencyConfig{Enabled: idempotencyEnabled, TTL: idempotencyTTL, LockTimeout: idempotencyLockTimeout},
 		Observability: ObservabilityConfig{OTelEnabled: otelEnabled, OTLPEndpoint: strEnv("OTEL_EXPORTER_OTLP_ENDPOINT", "localhost:4317")},
 	}, nil
 }

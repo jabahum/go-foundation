@@ -10,6 +10,7 @@ Client
   -> request ID
   -> authentication (local JWT or optional OIDC)
   -> local RBAC permission lookup
+  -> idempotency reservation / replay
   -> audit capture for mutations
   -> metrics / logging / recovery
   -> transport handler
@@ -130,6 +131,28 @@ grpcurl -plaintext \
 ```
 
 Revocation prevents further refreshes. Existing stateless access tokens remain valid until their short expiry, so keep `JWT_ACCESS_TOKEN_TTL` appropriately brief. Clients should keep refresh tokens in platform-secure storage and never local browser storage.
+
+## Idempotency
+
+Authenticated mutation RPCs accept an optional `idempotency-key` gRPC metadata value or `Idempotency-Key` HTTP header. The key must contain 8-255 letters, digits, `.`, `_`, `:`, or `-`. Keys are scoped to the authenticated user and RPC method, and only their SHA-256 hashes are stored.
+
+```bash
+curl -X POST http://localhost:8080/v1/users \
+  -H "Authorization: Bearer ${ACCESS_TOKEN}" \
+  -H "Idempotency-Key: $(uuidgen)" \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Jeremy","email":"jeremy@example.com","password":"StrongPass123!"}'
+```
+
+The first request reserves the key and stores its protobuf response. Repeating the same method, key, actor, and payload replays that response without executing the handler or writing a second audit event. HTTP responses expose `Idempotency-Replayed: true|false`; gRPC clients receive the equivalent response metadata.
+
+- Reusing a key with a different payload returns `IDEMPOTENCY_KEY_REUSED` (`AlreadyExists`, HTTP 409).
+- Concurrent requests using the same key return `IDEMPOTENCY_REQUEST_IN_PROGRESS` with retry metadata.
+- Transient server failures release the reservation so the request can be retried.
+- Completed records expire after `IDEMPOTENCY_TTL` (default `24h`) and are cleaned incrementally.
+- Abandoned in-progress reservations can be taken over after `IDEMPOTENCY_LOCK_TIMEOUT` (default `30s`); configure it above the maximum expected mutation duration.
+
+Idempotency covers user creation, RBAC relationship mutations, and authenticated session revocation. Login, refresh, and logout are intentionally excluded because safely replaying them would require persisting raw authentication tokens. Set `IDEMPOTENCY_ENABLED=false` to bypass the feature. This mechanism prevents ordinary duplicate execution but is not a substitute for a database transaction spanning both the business mutation and idempotency record.
 
 ## Create a user
 

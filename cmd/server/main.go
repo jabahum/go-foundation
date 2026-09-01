@@ -71,6 +71,7 @@ func run(logger *slog.Logger) error {
 	rbacRepo := postgresrepo.NewRBACRepository(db)
 	auditRepo := postgresrepo.NewAuditRepository(db)
 	sessionRepo := postgresrepo.NewSessionRepository(db)
+	idempotencyStore := postgresrepo.NewIdempotencyStore(db)
 	rbacService := apprbac.NewService(rbacRepo)
 	userService := appuser.NewService(userRepo, hasher)
 	auditService := appaudit.NewService(auditRepo)
@@ -128,6 +129,11 @@ func run(logger *slog.Logger) error {
 		interceptor.AuthenticationUnary(authn, public),
 		interceptor.ValidationUnary(),
 		interceptor.AuthorizationUnary(rbacService, policy.Policies(), func(p string) { metrics.Denied.WithLabelValues(p).Inc() }),
+		interceptor.IdempotencyUnary(idempotencyStore, interceptor.IdempotencyOptions{
+			Enabled:     cfg.Idempotency.Enabled,
+			TTL:         cfg.Idempotency.TTL,
+			LockTimeout: cfg.Idempotency.LockTimeout,
+		}, logger),
 		interceptor.AuditUnary(auditRepo, logger),
 		interceptor.MetricsUnary(metrics),
 		interceptor.LoggingUnary(logger),

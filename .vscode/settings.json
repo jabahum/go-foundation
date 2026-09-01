@@ -10,8 +10,10 @@
     "bufbuild",
     "bufconn",
     "coreoidc",
+    "durationpb",
     "errdetails",
     "fullstorydev",
+    "genproto",
     "gofmt",
     "grpcinterceptor",
     "grpcurl",
@@ -35,9 +37,12 @@
     "postgresrepo",
     "promhttp",
     "protoc",
+    "protoreflect",
+    "protoregistry",
     "protovalidate",
     "rbacv",
     "sslmode",
+    "statuspb",
     "transportgrpc",
     "userv"
   ]

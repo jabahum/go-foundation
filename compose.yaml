@@ -45,6 +45,9 @@ services:
       BOOTSTRAP_ADMIN_PASSWORD: ChangeMe123!
       BOOTSTRAP_ADMIN_NAME: Starter Admin
       OIDC_ENABLED: "false"
+      IDEMPOTENCY_ENABLED: "true"
+      IDEMPOTENCY_TTL: 24h
+      IDEMPOTENCY_LOCK_TIMEOUT: 30s
       OTEL_ENABLED: "true"
       OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
     volumes:
